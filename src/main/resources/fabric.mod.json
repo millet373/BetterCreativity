@@ -1,29 +1,31 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
-  "version": "${version}",
+  "id": "bettercreativity",
+  "version": "0.1.0",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Better Creativity",
+  "description": "Utilities for creative mode",
   "authors": [
-    "Me!"
+    "bubble0601"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/bubble0601/BetterCreativity"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MIT",
+  "icon": "assets/bettercreativity/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "net.ibubble.bettercreativity.BetterCreativity"
+    ],
+    "modmenu": [
+      "net.ibubble.bettercreativity.BetterCreativityModMenu"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "bettercreativity.mixins.json"
   ],
 
   "depends": {
@@ -33,6 +35,5 @@
     "java": ">=16"
   },
   "suggests": {
-    "another-mod": "*"
   }
 }
