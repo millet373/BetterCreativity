@@ -4,20 +4,21 @@ import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
+import net.ibubble.bettercreativity.config.ConfigManager;
+import net.ibubble.bettercreativity.config.ConfigObject;
 import net.ibubble.bettercreativity.config.ItemSortListEntry;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.LiteralText;
-import net.minecraft.util.collection.DefaultedList;
-import org.apache.logging.log4j.LogManager;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BetterCreativityModMenu implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
+        ConfigManager configManager = ConfigManager.getInstance();
+        ConfigObject config = configManager.getConfig();
+
         return parent -> {
             ConfigBuilder builder = ConfigBuilder.create()
                     .setParentScreen(parent)
@@ -27,8 +28,14 @@ public class BetterCreativityModMenu implements ModMenuApi {
 
             for (ItemGroup group: ItemGroup.GROUPS) {
                 if (group.isSpecial() || group == ItemGroup.INVENTORY) continue;
-                creativeInventory.addEntry(new ItemSortListEntry(group, LogManager.getLogger()::info));
+                ItemStack[] currentItemStacks = config.getItemGroupStacks(group.getName());
+                creativeInventory.addEntry(new ItemSortListEntry(group, currentItemStacks == null ? null : List.of(currentItemStacks), newValue -> {
+                    config.setItemGroupStacks(group.getName(), newValue.toArray(new ItemStack[0]));
+                }));
             }
+
+            builder.setSavingRunnable(configManager::saveConfig);
+
             return builder.build();
         };
     }

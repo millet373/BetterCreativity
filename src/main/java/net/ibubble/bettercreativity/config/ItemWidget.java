@@ -1,21 +1,17 @@
 package net.ibubble.bettercreativity.config;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import me.shedaniel.math.Rectangle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.render.*;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import org.apache.logging.log4j.LogManager;
 
 public class ItemWidget extends DrawableHelper implements Element, Selectable {
     private static final ItemRenderer itemRenderer = MinecraftClient.getInstance().getItemRenderer();
-//    private static final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
     public static final int width = 18;
     public static final int height = 18;
     public int x, y, row, col;
@@ -36,20 +32,24 @@ public class ItemWidget extends DrawableHelper implements Element, Selectable {
     }
 
     public void render(MatrixStack matrices, int x, int y, int mouseX, int mouseY, boolean highlight) {
-        itemRenderer.renderInGuiWithOverrides(itemStack, x + 1, y + 1);
         this.x = x;
         this.y = y;
-//        itemRenderer.renderGuiItemOverlay(textRenderer, stack, x, y - (this.touchDragStack.isEmpty() ? 0 : 8), amountText);
+        itemRenderer.renderInGuiWithOverrides(itemStack, x + 1, y + 1);
         if (highlight) {
             fill(matrices, x, y, x + width, y + height, 0x80ffffff);
         }
     }
 
-//    @Override
-//    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-//        LogManager.getLogger().info("dragged {} {} {} {} {}", mouseX, mouseY, button, deltaX, deltaY);
-//        return Element.super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-//    }
+    public void render(MatrixStack matrices, int x, int y, int mouseX, int mouseY, boolean highlight, int zOffset) {
+        itemRenderer.zOffset = (float)zOffset;
+        this.x = x;
+        this.y = y;
+        itemRenderer.renderInGuiWithOverrides(itemStack, x + 1, y + 1);
+        if (highlight) {
+            fill(matrices, x, y, x + width, y + height, 0x80ffffff);
+        }
+        itemRenderer.zOffset = 0F;
+    }
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {

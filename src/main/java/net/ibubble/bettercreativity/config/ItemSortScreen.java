@@ -2,8 +2,10 @@ package net.ibubble.bettercreativity.config;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.shedaniel.math.Rectangle;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -19,36 +21,35 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.registry.Registry;
-import org.apache.logging.log4j.LogManager;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
+@Environment(EnvType.CLIENT)
 public class ItemSortScreen extends Screen {
-    private static final Identifier BG_TEX = new Identifier("minecraft", "textures/block/oak_planks.png");
+    private static final Identifier BG_TEX = new Identifier("minecraft", "textures/block/iron_block.png");
     private static final DefaultedList<ItemStack> allItemStacks = DefaultedList.of();
 
     protected final Screen parent;
+    protected final Consumer<List<ItemStack>> onOK;
+
     private final List<ItemStack> itemStacks;
-    private ItemListWidget selectedList, paletteList;
-    private ButtonWidget okButton;
-    private ButtonWidget cancelButton;
+    private ItemListWidget selectedList, availableItemList;
 
-    private final Manager manager;
-    private boolean isEdited;
-//    private ItemStack cursorStack;
-//    private ItemWidget cursorItemWidget;
+    private final CursorItemManager cursorItemManager;
 
-    protected ItemSortScreen(Screen parent, Text title, List<ItemStack> items) {
+    protected ItemSortScreen(Screen parent, Text title, List<ItemStack> items, Consumer<List<ItemStack>> onOK) {
         super(title);
         this.parent = parent;
+        this.onOK = onOK;
         this.itemStacks = items;
-        manager = Manager.getInstance();
+        cursorItemManager = CursorItemManager.getInstance();
     }
 
     @Override
@@ -59,46 +60,69 @@ public class ItemSortScreen extends Screen {
         int itemWidth = ItemWidget.width;
         int itemHeight = ItemWidget.height;
         int listWidth = itemWidth * 9 + scrollBarWidth;
-        selectedList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, true);
+
+        Text selectedListTitle = new LiteralText("Items for tab:").append(title).formatted(Formatting.WHITE);
+        selectedList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, selectedListTitle, true);
+//        selectedList.setBackgroundTexture(BG_TEX);
         selectedList.setLeftPos(width / 4 - listWidth / 2);
         selectedList.setItems(itemStacks, 9);
 
-//        List<ItemStack> unselected = Registry.ITEM.getEntries().stream().map(Map.Entry::getValue).filter(item -> !items.contains(item)).collect(Collectors.toList());
-        List<ItemStack> unselected = allItemStacks.stream().filter(itemStack -> itemStacks.stream().noneMatch(stack -> ItemStack.areEqual(stack, itemStack))).collect(Collectors.toList());
+//        List<ItemStack> unselected = allItemStacks.stream().filter(itemStack1 -> itemStacks.stream().noneMatch(itemStack2 -> ItemStack.areEqual(itemStack1, itemStack2))).collect(Collectors.toList());
         int cols = (width / 2 - 10 - scrollBarWidth) / itemWidth;
         listWidth = itemWidth * cols + scrollBarWidth;
-        paletteList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, false);
-        paletteList.setLeftPos(width / 4 * 3 - listWidth / 2);
-        paletteList.setItems(unselected, cols);
+        availableItemList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, new LiteralText("All available items"), false);
+//        availableItemList.setBackgroundTexture(BG_TEX);
+        availableItemList.setLeftPos(width / 4 * 3 - listWidth / 2);
+        availableItemList.setItems(allItemStacks, cols);
 
-        int buttonWidths = Math.min(200, (width - 50 - 12) / 3);
-        okButton = new ButtonWidget(width / 2 + 3, height - 26, buttonWidths, 20, new LiteralText("OK"), button -> close(false));
-        cancelButton = new ButtonWidget(width / 2 - buttonWidths - 3, height - 26, buttonWidths, 20, isEdited() ? new TranslatableText("text.cloth-config.cancel_discard") : new TranslatableText("gui.cancel"), button -> close(true));
+        int buttonWidth = Math.min(200, (width - 50 - 12) / 3);
+        ButtonWidget cancelButton = new ButtonWidget(width / 2 - buttonWidth - 3, height - 26, buttonWidth, 20, new TranslatableText("gui.cancel"), button -> close(true));
+        ButtonWidget okButton = new ButtonWidget(width / 2 + 3, height - 26, buttonWidth, 20, new LiteralText("OK"), button -> close(false));
 
         addSelectableChild(selectedList);
-        addSelectableChild(paletteList);
+        addSelectableChild(availableItemList);
         addDrawableChild(okButton);
         addDrawableChild(cancelButton);
     }
 
     protected void close(boolean cancelled) {
-        LogManager.getLogger().info("close {}", cancelled);
         MinecraftClient.getInstance().setScreen(parent);
-        Manager.discard();
+        CursorItemManager.discard();
+        if (!cancelled) this.onOK.accept(selectedList.getItems());
     }
+
+    public void drawBackground(MatrixStack matrices) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShaderTexture(0, BG_TEX);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        int c = 64;
+        float f = 32.0F;
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        bufferBuilder.vertex(0.0D, this.height, 0.0D).texture(0.0F, (float)this.height / f).color(c, c, c, 255).next();
+        bufferBuilder.vertex(this.width, this.height, 0.0D).texture((float)this.width / f, (float)this.height / f).color(c, c, c, 255).next();
+        bufferBuilder.vertex(this.width, 0.0D, 0.0D).texture((float)this.width / f, 0.0F).color(c, c, c, 255).next();
+        bufferBuilder.vertex(0.0D, 0.0D, 0.0D).texture(0.0F, 0.0F).color(c, c, c, 255).next();
+        tessellator.draw();
+    }
+
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-        renderBackground(matrices);
-//        drawBackground(matrices, new Rectangle(0, 0, width, height), 64);
+        renderBackgroundTexture(0);
+//        drawBackground(matrices);
+
         selectedList.render(matrices, mouseX, mouseY, delta);
-        paletteList.render(matrices, mouseX, mouseY, delta);
-        drawCenteredText(matrices, textRenderer, title, width / 2, 12, -1);
+        availableItemList.render(matrices, mouseX, mouseY, delta);
+        drawCenteredText(matrices, textRenderer, title, width / 2, 8, 0xFFFFFF);
+        drawCenteredText(matrices, textRenderer, new LiteralText("Drag and drop items to edit").formatted(Formatting.GRAY), width / 2, 20, 0xFFFFFF);
 
         super.render(matrices, mouseX, mouseY, delta);
 
-        manager.renderCursorStack(matrices, mouseX, mouseY);
+        setZOffset(200);
+        cursorItemManager.renderCursorStack(matrices, mouseX, mouseY, 200);
+        setZOffset(0);
 
         if (!this.isDragging()) {
             ItemWidget hoveredItemWidget = getHoveredItemWidget(mouseX, mouseY);
@@ -117,9 +141,9 @@ public class ItemSortScreen extends Screen {
             handled = handled || element.mouseClicked(mouseX, mouseY, button);
         }
         if (button == 0 && hovered != null) {
-            manager.setCursorStack(hovered.getItemStack().copy());
-            manager.deltaX = (int) (mouseX - hovered.x);
-            manager.deltaY = (int) (mouseY - hovered.y);
+            cursorItemManager.setCursorStack(hovered.getItemStack().copy());
+            cursorItemManager.deltaX = (int) (mouseX - hovered.x);
+            cursorItemManager.deltaY = (int) (mouseY - hovered.y);
             setDragging(true);
             setFocused(hovered);
             return true;
@@ -143,8 +167,8 @@ public class ItemSortScreen extends Screen {
             handled = handled || element.mouseReleased(mouseX, mouseY, button);
         }
         setDragging(false);
-        if (manager.hasCursorStack()) {
-            manager.setCursorStack(null);
+        if (cursorItemManager.hasCursorStack()) {
+            cursorItemManager.setCursorStack(null);
             return true;
         }
         return handled;
@@ -168,33 +192,15 @@ public class ItemSortScreen extends Screen {
         return hoveredItemWidget.get();
     }
 
-    public boolean isEdited() {
-        return isEdited;
-    }
-
-    private void drawBackground(MatrixStack matrices, Rectangle rect, int c) {
-        Matrix4f matrix = matrices.peek().getModel();
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        RenderSystem.setShaderTexture(0, BG_TEX);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        buffer.vertex(matrix, rect.getMinX(), rect.getMaxY(), 0.0F).texture(rect.getMinX() / 32.0F, rect.getMaxY() / 32.0F).color(c, c, c, 255).next();
-        buffer.vertex(matrix, rect.getMaxX(), rect.getMaxY(), 0.0F).texture(rect.getMaxX() / 32.0F, rect.getMaxY() / 32.0F).color(c, c, c, 255).next();
-        buffer.vertex(matrix, rect.getMaxX(), rect.getMinY(), 0.0F).texture(rect.getMaxX() / 32.0F, rect.getMinY() / 32.0F).color(c, c, c, 255).next();
-        buffer.vertex(matrix, rect.getMinX(), rect.getMinY(), 0.0F).texture(rect.getMinX() / 32.0F, rect.getMinY() / 32.0F).color(c, c, c, 255).next();
-        tessellator.draw();
-    }
-
     static {
         for (Item item: Registry.ITEM) {
             ItemGroup group = item.getGroup();
             if (item instanceof EnchantedBookItem) {
                 for (Enchantment enchantment : Registry.ENCHANTMENT) {
-                    for (int i = enchantment.getMinLevel(); i <= enchantment.getMaxLevel(); i++) {
-                        allItemStacks.add(EnchantedBookItem.forEnchantment(new EnchantmentLevelEntry(enchantment, i)));
-                    }
+//                    for (int i = enchantment.getMinLevel(); i <= enchantment.getMaxLevel(); i++) {
+//                        allItemStacks.add(EnchantedBookItem.forEnchantment(new EnchantmentLevelEntry(enchantment, i)));
+//                    }
+                    allItemStacks.add(EnchantedBookItem.forEnchantment(new EnchantmentLevelEntry(enchantment, enchantment.getMaxLevel())));
                 }
             } else if (group == null) {
                 allItemStacks.add(item.getDefaultStack());
@@ -204,16 +210,15 @@ public class ItemSortScreen extends Screen {
         }
     }
 
-    public static class Manager {
-        private static Manager instance = null;
+    public static class CursorItemManager {
+        private static CursorItemManager instance = null;
 
-        private ItemSortScreen itemSortScreen;
         private ItemStack cursorStack;
         private ItemWidget cursorItemWidget;
         public int deltaX, deltaY;
 
-        public static Manager getInstance() {
-            if (instance == null) instance = new Manager();
+        public static CursorItemManager getInstance() {
+            if (instance == null) instance = new CursorItemManager();
             return instance;
         }
 
@@ -221,15 +226,7 @@ public class ItemSortScreen extends Screen {
             instance = null;
         }
 
-        private Manager() {}
-
-        public void setItemSortScreen(ItemSortScreen itemSortScreen) {
-            this.itemSortScreen = itemSortScreen;
-        }
-
-        public ItemSortScreen getItemSortScreen() {
-            return itemSortScreen;
-        }
+        private CursorItemManager() {}
 
         public ItemStack getCursorStack() {
             return cursorStack;
@@ -244,9 +241,9 @@ public class ItemSortScreen extends Screen {
             return cursorStack != null;
         }
 
-        public void renderCursorStack(MatrixStack matrices, int mouseX, int mouseY) {
+        public void renderCursorStack(MatrixStack matrices, int mouseX, int mouseY, int zOffset) {
             if (cursorItemWidget != null) {
-                cursorItemWidget.render(matrices, mouseX - deltaX, mouseY - deltaY, mouseX, mouseY, false);
+                cursorItemWidget.render(matrices, mouseX - deltaX, mouseY - deltaY, mouseX, mouseY, false, zOffset);
             }
         }
     }

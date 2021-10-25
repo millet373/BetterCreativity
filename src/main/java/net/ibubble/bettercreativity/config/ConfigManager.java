@@ -19,17 +19,25 @@ public class ConfigManager {
     private File file;
     private ConfigObject config;
 
-    private ConfigManager() {}
+    private ConfigManager() {
+        loadConfig();
+    }
 
     public ConfigObject getConfig() {
+        if (config == null) {
+            config = new ConfigObject();
+        }
         return config;
     }
 
-    public void loadConfig() {
+    private void loadConfig() {
         if (file == null) {
             file = new File(FabricLoader.getInstance().getConfigDir().toFile(), BetterCreativity.MOD_ID + ".json");
         }
-        if (!file.exists()) return;
+        if (!file.exists()) {
+            config = new ConfigObject();
+            return;
+        }
 
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
