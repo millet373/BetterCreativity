@@ -1,6 +1,8 @@
 package net.ibubble.bettercreativity.config;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -11,6 +13,7 @@ import net.minecraft.util.registry.Registry;
 import java.util.Arrays;
 import java.util.Objects;
 
+@Environment(EnvType.CLIENT)
 public class ConfigObject {
     private CreativeInventoryItemConfig[] creativeInventoryItemConfigs = {};
 
@@ -49,7 +52,7 @@ public class ConfigObject {
         config.setStacks(stacks);
     }
 
-    private static class CreativeInventoryItemConfig {
+    public static class CreativeInventoryItemConfig {
         private final String groupName;
         private ItemStackObject[] stacks = {};
 
@@ -63,6 +66,7 @@ public class ConfigObject {
                 ItemStackObject stackObject = this.stacks[i];
                 Item item = Registry.ITEM.get(new Identifier(stackObject.id));
                 stacks[i] = new ItemStack(item, 1);
+                if (stackObject.nbt == null) continue;
                 try {
                     NbtCompound nbt = StringNbtReader.parse(stackObject.nbt);
                     stacks[i].setNbt(nbt);
@@ -82,5 +86,13 @@ public class ConfigObject {
         }
     }
 
-    private record ItemStackObject(String id, String nbt) {}
+    public static class ItemStackObject {
+        String id;
+        String nbt;
+
+        public ItemStackObject(String id, String nbt) {
+            this.id = id;
+            this.nbt = nbt;
+        }
+    }
 }

@@ -4,6 +4,8 @@ import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
 import net.ibubble.bettercreativity.config.ItemSortListEntry;
@@ -13,6 +15,7 @@ import net.minecraft.text.LiteralText;
 
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class BetterCreativityModMenu implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {

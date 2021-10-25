@@ -2,6 +2,8 @@ package net.ibubble.bettercreativity.config;
 
 import com.google.common.collect.Lists;
 import me.shedaniel.clothconfig2.gui.entries.TooltipListEntry;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Element;
@@ -21,6 +23,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class ItemSortListEntry extends TooltipListEntry<List<ItemStack>> {
     protected Supplier<List<ItemStack>> defaultValue;
     protected Consumer<List<ItemStack>> saveConsumer;

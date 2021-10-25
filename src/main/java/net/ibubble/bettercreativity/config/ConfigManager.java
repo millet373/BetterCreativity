@@ -1,11 +1,14 @@
 package net.ibubble.bettercreativity.config;
 
 import com.google.gson.Gson;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.ibubble.bettercreativity.BetterCreativity;
 
 import java.io.*;
 
+@Environment(EnvType.CLIENT)
 public class ConfigManager {
     private static ConfigManager instance;
 

@@ -1,5 +1,7 @@
 package net.ibubble.bettercreativity.mixin.gui;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
@@ -13,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.util.Arrays;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 @Mixin(CreativeInventoryScreen.class)
 public class CreativeInventoryScreenMixin {
     @Redirect(method = "setSelectedTab", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemGroup;appendStacks(Lnet/minecraft/util/collection/DefaultedList;)V"))

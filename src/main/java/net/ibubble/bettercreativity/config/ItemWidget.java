@@ -1,6 +1,8 @@
 package net.ibubble.bettercreativity.config;
 
 import me.shedaniel.math.Rectangle;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
@@ -10,6 +12,7 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 
+@Environment(EnvType.CLIENT)
 public class ItemWidget extends DrawableHelper implements Element, Selectable {
     private static final ItemRenderer itemRenderer = MinecraftClient.getInstance().getItemRenderer();
     public static final int width = 18;
