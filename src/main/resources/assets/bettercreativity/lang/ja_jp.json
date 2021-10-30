@@ -1,0 +1,16 @@
+{
+  "text.bettercreativity.customize": "カスタム",
+  "config.bettercreativity.title": "Better Creativityの設定",
+  "config.bettercreativity.basics": "基本",
+  "config.bettercreativity.behavior": "クリエイティブインベントリの動作",
+  "config.bettercreativity.onLeftClickSlot": "スロットを左クリック:",
+  "config.bettercreativity.onLeftClickSlot.tooltip": "クリエイティブスロットを左クリックしたときの動作",
+  "config.bettercreativity.onRightClickSlot": "スロットを右クリック:",
+  "config.bettercreativity.onRightClickSlot.tooltip": "クリエイティブスロットを右クリックしたときの動作",
+  "config.bettercreativity.searchItemById": "IDも含めて検索",
+  "config.bettercreativity.searchItemById.tooltip": "クリエイティブインベントリの検索タブでIDも含めて検索します",
+  "config.bettercreativity.creativeTabs": "クリエイティブタブ",
+  "config.bettercreativity.creativeTabs.sort.title": "クリエイティブタブのアイテムの並び替え",
+  "config.bettercreativity.creativeTabs.sort.hint": "ドラッグアンドドロップで編集",
+  "config.bettercreativity.creativeTabs.sort.availableListTitle": "アイテムリスト"
+}

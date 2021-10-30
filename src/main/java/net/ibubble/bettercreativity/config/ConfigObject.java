@@ -17,6 +17,10 @@ import java.util.Objects;
 public class ConfigObject {
     private CreativeInventoryItemConfig[] creativeInventoryItemConfigs = {};
 
+    public boolean searchItemById = false;
+    public CreativeSlotAction onLeftClickSlot = CreativeSlotAction.DEFAULT;
+    public CreativeSlotAction onRightClickSlot = CreativeSlotAction.DEFAULT;
+
     ConfigObject() {}
 
     private CreativeInventoryItemConfig createItemGroupConfig(String name) {
@@ -94,5 +98,13 @@ public class ConfigObject {
             this.id = id;
             this.nbt = nbt;
         }
+    }
+
+    public enum CreativeSlotAction {
+        DEFAULT,
+        PICKUP,
+        PICKUP_STACK,
+        TRANSFER,
+        TRANSFER_STACK,
     }
 }

@@ -1,0 +1,16 @@
+{
+  "text.bettercreativity.customize": "Customize",
+  "config.bettercreativity.title": "Better Creativity Config",
+  "config.bettercreativity.basics": "Basics",
+  "config.bettercreativity.behavior": "Behavior of creative inventory",
+  "config.bettercreativity.onLeftClickSlot": "On left-click slot",
+  "config.bettercreativity.onLeftClickSlot.tooltip": "Creative slot action type on left-click",
+  "config.bettercreativity.onRightClickSlot": "On right-click slot",
+  "config.bettercreativity.onRightClickSlot.tooltip": "Creative slot action type on right-click",
+  "config.bettercreativity.searchItemById": "Search by item id",
+  "config.bettercreativity.searchItemById.tooltip": "Search item by item id as well as item name in creative inventory(For non-English users)",
+  "config.bettercreativity.creativeTabs": "Creative Tabs",
+  "config.bettercreativity.creativeTabs.sort.title": "Customization of creative inventory item sorting",
+  "config.bettercreativity.creativeTabs.sort.hint": "Drag and drop items to edit",
+  "config.bettercreativity.creativeTabs.sort.availableListTitle": "Item list"
+}

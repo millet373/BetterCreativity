@@ -20,6 +20,9 @@
     "main": [
       "net.ibubble.bettercreativity.BetterCreativity"
     ],
+    "client": [
+      "net.ibubble.bettercreativity.BetterCreativityClient"
+    ],
     "modmenu": [
       "net.ibubble.bettercreativity.BetterCreativityModMenu"
     ]
