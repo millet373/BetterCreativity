@@ -13,7 +13,6 @@ import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.collection.DefaultedList;
@@ -47,8 +46,8 @@ public class ItemSortListEntry extends TooltipListEntry<List<ItemStack>> {
         resetButton = new ButtonWidget(0, 0, textRenderer.getWidth(resetText) + 6, 20, resetText, button -> {
             this.value = this.getDefaultValue().orElse(List.of());
         });
-        editButton = new ButtonWidget(0, 0, 120, 20, new LiteralText("Edit"), button -> {
-            ItemSortScreen screen = new ItemSortScreen(getConfigScreen(), itemGroup.getTranslationKey(), this.value, newValue -> this.value = newValue);
+        editButton = new ButtonWidget(0, 0, 150 - resetButton.getWidth() - 2, 20, new TranslatableText("text.bettercreativity.customize"), button -> {
+            ItemSortScreen screen = new ItemSortScreen(getConfigScreen(), itemGroup, this.value, defaultValue, newValue -> this.value = newValue);
             MinecraftClient.getInstance().setScreen(screen);
         });
 
@@ -84,6 +83,15 @@ public class ItemSortListEntry extends TooltipListEntry<List<ItemStack>> {
         return false;
     }
 
+    public boolean isMatchDefault() {
+        List<ItemStack> defaultValue = getDefaultValue().orElse(List.of());
+        if (defaultValue.size() != value.size()) return false;
+        for (int i = 0; i < defaultValue.size(); i++) {
+            if (!ItemStack.areEqual(defaultValue.get(i), value.get(i))) return false;
+        }
+        return true;
+    }
+
     @Override
     public void save() {
         if (saveConsumer != null) {
@@ -99,18 +107,18 @@ public class ItemSortListEntry extends TooltipListEntry<List<ItemStack>> {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
         resetButton.y = y;
-        resetButton.active = isEdited();
+        resetButton.active = !isMatchDefault();
         editButton.y = y;
 
         Text displayedFieldName = getDisplayedFieldName();
         if (textRenderer.isRightToLeft()) {
             textRenderer.drawWithShadow(matrices, displayedFieldName.asOrderedText(), window.getScaledWidth() - x - textRenderer.getWidth(displayedFieldName), y + 6, getPreferredTextColor());
             resetButton.x = x;
-            editButton.x = x + resetButton.getWidth() + 6;
+            editButton.x = x + resetButton.getWidth() + 2;
         } else {
             textRenderer.drawWithShadow(matrices, displayedFieldName.asOrderedText(), x, y + 6, getPreferredTextColor());
             resetButton.x = x + entryWidth - resetButton.getWidth();
-            editButton.x = resetButton.x - 6 - editButton.getWidth();
+            editButton.x = resetButton.x - 2 - editButton.getWidth();
         }
         resetButton.render(matrices, mouseX, mouseY, delta);
         editButton.render(matrices, mouseX, mouseY, delta);

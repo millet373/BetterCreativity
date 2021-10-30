@@ -1,16 +1,12 @@
 package net.ibubble.bettercreativity.config;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import me.shedaniel.math.Rectangle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentLevelEntry;
@@ -22,33 +18,36 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.registry.Registry;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
 public class ItemSortScreen extends Screen {
-    private static final Identifier BG_TEX = new Identifier("minecraft", "textures/block/iron_block.png");
     private static final DefaultedList<ItemStack> allItemStacks = DefaultedList.of();
 
-    protected final Screen parent;
-    protected final Consumer<List<ItemStack>> onOK;
-
+    private final Screen parent;
+    private final ItemGroup itemGroup;
     private final List<ItemStack> itemStacks;
+    private final Supplier<List<ItemStack>> defaultValue;
+    private final Consumer<List<ItemStack>> onOK;
+
     private ItemListWidget selectedList, availableItemList;
+    private Text selectedListTitle, availableListTitle;
 
     private final CursorItemManager cursorItemManager;
 
-    protected ItemSortScreen(Screen parent, Text title, List<ItemStack> items, Consumer<List<ItemStack>> onOK) {
-        super(title);
+    protected ItemSortScreen(Screen parent, ItemGroup itemGroup, List<ItemStack> itemStacks, Supplier<List<ItemStack>> defaultValue, Consumer<List<ItemStack>> onOK) {
+        super(new TranslatableText("config.bettercreativity.creativeTabs.sort.title"));
         this.parent = parent;
+        this.itemGroup = itemGroup;
+        this.itemStacks = itemStacks;
+        this.defaultValue = defaultValue;
         this.onOK = onOK;
-        this.itemStacks = items;
         cursorItemManager = CursorItemManager.getInstance();
     }
 
@@ -59,30 +58,56 @@ public class ItemSortScreen extends Screen {
         int scrollBarWidth = 8;
         int itemWidth = ItemWidget.width;
         int itemHeight = ItemWidget.height;
-        int listWidth = itemWidth * 9 + scrollBarWidth;
 
-        Text selectedListTitle = new LiteralText("Items for tab:").append(title).formatted(Formatting.WHITE);
-        selectedList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, selectedListTitle, true);
-//        selectedList.setBackgroundTexture(BG_TEX);
-        selectedList.setLeftPos(width / 4 - listWidth / 2);
+        int leftListWidth = itemWidth * 9 + scrollBarWidth;
+        int leftListLeft = width / 4 - leftListWidth / 2;
+        selectedListTitle = itemGroup.getTranslationKey();
+        selectedList = new ItemListWidget(client, leftListWidth, height, 64, height - 32, itemHeight, true);
+        selectedList.setLeftPos(leftListLeft);
         selectedList.setItems(itemStacks, 9);
+        ButtonWidget defaultButton = new ButtonWidget(leftListLeft + leftListWidth - 64, 32, 20, 20, Text.of("D"), button -> {
+            selectedList.setItems(defaultValue.get(), 9);
+        }, (button, matrices, mouseX, mouseY) -> {
+            if (button.isMouseOver(mouseX, mouseY)) {
+                renderTooltip(matrices, Text.of("Default"), mouseX, mouseY);
+            }
+        });
+        ButtonWidget recommendedButton = new ButtonWidget(leftListLeft + leftListWidth - 42, 32, 20, 20, Text.of("R"), button -> {
+            selectedList.setItems(List.of(), 9);
+        }, (button, matrices, mouseX, mouseY) -> {
+            if (button.isMouseOver(mouseX, mouseY)) {
+                renderTooltip(matrices, Text.of("Recommended"), mouseX, mouseY);
+            }
+        });
+        ButtonWidget clearButton = new ButtonWidget(leftListLeft + leftListWidth - 20, 32, 20, 20, Text.of("C"), button -> {
+            selectedList.setItems(List.of(), 9);
+        }, (button, matrices, mouseX, mouseY) -> {
+            if (button.isMouseOver(mouseX, mouseY)) {
+                renderTooltip(matrices, Text.of("Clear"), mouseX, mouseY);
+            }
+        });
+
+        addSelectableChild(selectedList);
+        addDrawableChild(defaultButton);
+        addDrawableChild(recommendedButton);
+        addDrawableChild(clearButton);
 
 //        List<ItemStack> unselected = allItemStacks.stream().filter(itemStack1 -> itemStacks.stream().noneMatch(itemStack2 -> ItemStack.areEqual(itemStack1, itemStack2))).collect(Collectors.toList());
         int cols = (width / 2 - 10 - scrollBarWidth) / itemWidth;
-        listWidth = itemWidth * cols + scrollBarWidth;
-        availableItemList = new ItemListWidget(client, listWidth, height, 32, height - 32, itemHeight, new LiteralText("All available items"), false);
-//        availableItemList.setBackgroundTexture(BG_TEX);
-        availableItemList.setLeftPos(width / 4 * 3 - listWidth / 2);
+        int rightListWidth = itemWidth * cols + scrollBarWidth;
+        availableListTitle = new TranslatableText("config.bettercreativity.creativeTabs.sort.availableListTitle");
+        availableItemList = new ItemListWidget(client, rightListWidth, height, 64, height - 32, itemHeight, false);
+        availableItemList.setLeftPos(width / 4 * 3 - rightListWidth / 2);
         availableItemList.setItems(allItemStacks, cols);
+
+        addSelectableChild(availableItemList);
 
         int buttonWidth = Math.min(200, (width - 50 - 12) / 3);
         ButtonWidget cancelButton = new ButtonWidget(width / 2 - buttonWidth - 3, height - 26, buttonWidth, 20, new TranslatableText("gui.cancel"), button -> close(true));
-        ButtonWidget okButton = new ButtonWidget(width / 2 + 3, height - 26, buttonWidth, 20, new LiteralText("OK"), button -> close(false));
+        ButtonWidget okButton = new ButtonWidget(width / 2 + 3, height - 26, buttonWidth, 20, Text.of("OK"), button -> close(false));
 
-        addSelectableChild(selectedList);
-        addSelectableChild(availableItemList);
-        addDrawableChild(okButton);
         addDrawableChild(cancelButton);
+        addDrawableChild(okButton);
     }
 
     protected void close(boolean cancelled) {
@@ -91,32 +116,17 @@ public class ItemSortScreen extends Screen {
         if (!cancelled) this.onOK.accept(selectedList.getItems());
     }
 
-    public void drawBackground(MatrixStack matrices) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        RenderSystem.setShaderTexture(0, BG_TEX);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int c = 64;
-        float f = 32.0F;
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        bufferBuilder.vertex(0.0D, this.height, 0.0D).texture(0.0F, (float)this.height / f).color(c, c, c, 255).next();
-        bufferBuilder.vertex(this.width, this.height, 0.0D).texture((float)this.width / f, (float)this.height / f).color(c, c, c, 255).next();
-        bufferBuilder.vertex(this.width, 0.0D, 0.0D).texture((float)this.width / f, 0.0F).color(c, c, c, 255).next();
-        bufferBuilder.vertex(0.0D, 0.0D, 0.0D).texture(0.0F, 0.0F).color(c, c, c, 255).next();
-        tessellator.draw();
-    }
-
-
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         renderBackgroundTexture(0);
-//        drawBackground(matrices);
 
         selectedList.render(matrices, mouseX, mouseY, delta);
         availableItemList.render(matrices, mouseX, mouseY, delta);
+        float titleY = 32F + 10F - (float) textRenderer.fontHeight / 2F;
+        textRenderer.draw(matrices, selectedListTitle, selectedList.getLeft(), titleY, 0xFFFFFF);
+        textRenderer.draw(matrices, availableListTitle, availableItemList.getLeft(), titleY, 0xFFFFFF);
         drawCenteredText(matrices, textRenderer, title, width / 2, 8, 0xFFFFFF);
-        drawCenteredText(matrices, textRenderer, new LiteralText("Drag and drop items to edit").formatted(Formatting.GRAY), width / 2, 20, 0xFFFFFF);
+        drawCenteredText(matrices, textRenderer, new TranslatableText("config.bettercreativity.creativeTabs.sort.hint").formatted(Formatting.GRAY), width / 2, 20, 0xFFFFFF);
 
         super.render(matrices, mouseX, mouseY, delta);
 

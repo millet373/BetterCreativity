@@ -30,15 +30,15 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
     private List<ItemStack> items, currentItems;
     private int cols;
     private final boolean modifiable;
-    private final Text title;
 
-    public ItemListWidget(MinecraftClient minecraftClient, int width, int height, int top, int bottom, int itemHeight, Text title, boolean modifiable) {
+    public ItemListWidget(MinecraftClient minecraftClient, int width, int height, int top, int bottom, int itemHeight, boolean modifiable) {
         super(minecraftClient, width, height, top, bottom, itemHeight);
 
-        this.title = title;
         this.modifiable = modifiable;
+    }
 
-        setRenderHeader(true, (int)(9.0F * 1.5F));
+    public int getLeft() {
+        return left;
     }
 
     public List<ItemStack> getItems() {
@@ -59,13 +59,6 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         for (int i = 0; i < rows; i++) {
             addEntry(new ItemRowEntry(i, items.subList(i * cols, Math.min((i + 1) * cols, size))));
         }
-    }
-
-    @Override
-    protected void renderHeader(MatrixStack matrices, int x, int y, Tessellator tessellator) {
-        TextRenderer textRenderer = client.textRenderer;
-        Text text = (new LiteralText("")).append(this.title).formatted(Formatting.UNDERLINE, Formatting.BOLD);
-        textRenderer.draw(matrices, text, (float)(x + this.width / 2 - textRenderer.getWidth(text) / 2), (float)Math.min(this.top + 3, y), 16777215);
     }
 
     @Override
