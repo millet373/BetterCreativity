@@ -5,6 +5,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import me.shedaniel.clothconfig2.gui.entries.SubCategoryListEntry;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -14,7 +15,6 @@ import net.ibubble.bettercreativity.config.ItemSortListEntry;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 
 import java.util.List;
@@ -39,24 +39,7 @@ public class BetterCreativityModMenu implements ModMenuApi {
         entryBuilder.setResetButtonKey(new TranslatableText("controls.reset"));
 
         ConfigCategory basics = builder.getOrCreateCategory(new TranslatableText("config.bettercreativity.basics"));
-        SubCategoryBuilder behavior = entryBuilder.startSubCategory(new TranslatableText("config.bettercreativity.behavior"));
-        behavior.add(entryBuilder
-                .startEnumSelector(new TranslatableText("config.bettercreativity.onLeftClickSlot"), ConfigObject.CreativeSlotAction.class, config.onLeftClickSlot)
-                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
-                .setTooltip(new TranslatableText("config.bettercreativity.onLeftClickSlot.tooltip"))
-                .setEnumNameProvider(value -> Text.of(value.toString()))
-                .setSaveConsumer(newValue -> config.onLeftClickSlot = newValue)
-                .build()
-        );
-        behavior.add(entryBuilder
-                .startEnumSelector(new TranslatableText("config.bettercreativity.onRightClickSlot"), ConfigObject.CreativeSlotAction.class, config.onRightClickSlot)
-                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
-                .setTooltip(new TranslatableText("config.bettercreativity.onRightClickSlot.tooltip"))
-                .setEnumNameProvider(value -> Text.of(value.toString()))
-                .setSaveConsumer(newValue -> config.onRightClickSlot = newValue)
-                .build()
-        );
-        basics.addEntry(behavior.build());
+        basics.addEntry(createBehaviorSubCategory(entryBuilder, config));
         basics.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.bettercreativity.searchItemById"), config.searchItemById)
                 .setDefaultValue(false)
                 .setTooltip(new TranslatableText("config.bettercreativity.searchItemById.tooltip"))
@@ -79,5 +62,48 @@ public class BetterCreativityModMenu implements ModMenuApi {
         builder.setSavingRunnable(configManager::saveConfig);
 
         return builder.build();
+    }
+
+    private SubCategoryListEntry createBehaviorSubCategory(ConfigEntryBuilder entryBuilder, ConfigObject config) {
+        SubCategoryBuilder behavior = entryBuilder.startSubCategory(new TranslatableText("config.bettercreativity.behavior"));
+        behavior.add(entryBuilder
+                .startEnumSelector(new TranslatableText("config.bettercreativity.onLeftClickSlot"), ConfigObject.CreativeSlotAction.class, config.onLeftClickSlot)
+                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
+                .setTooltip(new TranslatableText("config.bettercreativity.onLeftClickSlot.tooltip"))
+                .setEnumNameProvider(value -> new TranslatableText("config.bettercreativity.slotAction." + value))
+                .setSaveConsumer(newValue -> config.onLeftClickSlot = newValue)
+                .build()
+        );
+        behavior.add(entryBuilder
+                .startEnumSelector(new TranslatableText("config.bettercreativity.onRightClickSlot"), ConfigObject.CreativeSlotAction.class, config.onRightClickSlot)
+                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
+                .setTooltip(new TranslatableText("config.bettercreativity.onRightClickSlot.tooltip"))
+                .setEnumNameProvider(value -> new TranslatableText("config.bettercreativity.slotAction." + value))
+                .setSaveConsumer(newValue -> config.onRightClickSlot = newValue)
+                .build()
+        );
+        behavior.add(entryBuilder
+                .startEnumSelector(new TranslatableText("config.bettercreativity.onShiftAndLeftClickSlot"), ConfigObject.CreativeSlotAction.class, config.onShiftAndLeftClickSlot)
+                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
+                .setTooltip(new TranslatableText("config.bettercreativity.onShiftAndLeftClickSlot.tooltip"))
+                .setEnumNameProvider(value -> new TranslatableText("config.bettercreativity.slotAction." + value))
+                .setSaveConsumer(newValue -> config.onShiftAndLeftClickSlot = newValue)
+                .build()
+        );
+        behavior.add(entryBuilder
+                .startEnumSelector(new TranslatableText("config.bettercreativity.onShiftAndRightClickSlot"), ConfigObject.CreativeSlotAction.class, config.onShiftAndRightClickSlot)
+                .setDefaultValue(ConfigObject.CreativeSlotAction.DEFAULT)
+                .setTooltip(new TranslatableText("config.bettercreativity.onShiftAndRightClickSlot.tooltip"))
+                .setEnumNameProvider(value -> new TranslatableText("config.bettercreativity.slotAction." + value))
+                .setSaveConsumer(newValue -> config.onShiftAndRightClickSlot = newValue)
+                .build()
+        );
+        behavior.add(entryBuilder
+                .startBooleanToggle(new TranslatableText("config.bettercreativity.searchOnInputWithShift"), config.searchOnInputWithShift)
+                .setDefaultValue(false)
+                .setSaveConsumer(newValue -> config.searchOnInputWithShift = newValue)
+                .build()
+        );
+        return behavior.build();
     }
 }

@@ -19,7 +19,10 @@ public class ConfigObject {
 
     public boolean searchItemById = false;
     public CreativeSlotAction onLeftClickSlot = CreativeSlotAction.DEFAULT;
+    public CreativeSlotAction onShiftAndLeftClickSlot = CreativeSlotAction.DEFAULT;
     public CreativeSlotAction onRightClickSlot = CreativeSlotAction.DEFAULT;
+    public CreativeSlotAction onShiftAndRightClickSlot = CreativeSlotAction.DEFAULT;
+    public boolean searchOnInputWithShift = false;
 
     ConfigObject() {}
 
