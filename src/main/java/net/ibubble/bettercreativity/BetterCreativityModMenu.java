@@ -32,8 +32,7 @@ public class BetterCreativityModMenu implements ModMenuApi {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(new TranslatableText("config.bettercreativity.title"))
-                .setDoesConfirmSave(false);
+                .setTitle(new TranslatableText("config.bettercreativity.title"));
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         entryBuilder.setResetButtonKey(new TranslatableText("controls.reset"));

@@ -3,7 +3,6 @@ package net.ibubble.bettercreativity.config;
 import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ibubble.bettercreativity.BetterCreativity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
@@ -14,16 +13,16 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Environment(EnvType.CLIENT)
 public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntry> {
     private final ItemSortScreen.CursorItemManager cursorItemManager = ItemSortScreen.CursorItemManager.getInstance();
 
+    private final boolean modifiable;
     private List<ItemStack> items, displayedItems;
     private int cols;
-    private final boolean modifiable;
     private double scrollDelta = 0;
+    private ItemWidget previousHoveredItemWidget;
 
     public ItemListWidget(MinecraftClient minecraftClient, int width, int height, int top, int bottom, int itemHeight, boolean modifiable) {
         super(minecraftClient, width, height, top, bottom, itemHeight);
@@ -35,6 +34,10 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         return left;
     }
 
+    public int getRight() {
+        return right;
+    }
+
     public List<ItemStack> getItems() {
         return items;
     }
@@ -43,10 +46,15 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         this.cols = cols;
         this.items = items;
         displayedItems = items;
-        initEntries(items);
+        updateEntries(items);
     }
 
-    public void initEntries(List<ItemStack> items) {
+    public void addItem(ItemStack stack) {
+        items.add(stack);
+        updateEntries(items);
+    }
+
+    public void updateEntries(List<ItemStack> items) {
         clearEntries();
         int size = items.size();
         int rows = MathHelper.ceil((double) size / cols);
@@ -75,7 +83,7 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
                 displayedItems.addAll(items.subList(0, hoveredIndex));
                 displayedItems.add(ItemStack.EMPTY);
                 displayedItems.addAll(items.subList(hoveredIndex + 1, items.size()));
-                initEntries(displayedItems);
+                updateEntries(displayedItems);
 
                 items = new ArrayList<>(displayedItems);
                 items.remove(hoveredIndex);
@@ -91,26 +99,43 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         scrollDelta = 0;
         if (modifiable && button == 0 && cursorItemManager.hasCursorStack()) {
             if (isMouseOver(mouseX, mouseY)) {
-                ItemWidget hovered = getHoveredItemWidget((int) mouseX, (int) mouseY);
+                ItemWidget hovered = getHoveredItemWidget(mouseX, mouseY);
+                boolean bl = hovered != null && previousHoveredItemWidget != null;
+                if (hovered == previousHoveredItemWidget || (bl && hovered.col == previousHoveredItemWidget.col && hovered.row == previousHoveredItemWidget.row)) {
+                    previousHoveredItemWidget = hovered;
+                    return false;
+                }
+
                 if (hovered != null) {
                     int hoveredIndex = hovered.row * cols + hovered.col;
                     displayedItems = Lists.newArrayList();
                     displayedItems.addAll(items.subList(0, hoveredIndex));
                     displayedItems.add(ItemStack.EMPTY);
                     displayedItems.addAll(items.subList(hoveredIndex, items.size()));
-                    initEntries(displayedItems);
-                    return true;
+                } else {
+                    displayedItems = Lists.newArrayList();
+                    displayedItems.addAll(items);
+                    displayedItems.add(ItemStack.EMPTY);
                 }
+                updateEntries(displayedItems);
+                previousHoveredItemWidget = hovered;
             } else {
                 if (mouseX >= left && mouseX <= right) {
-                    scrollDelta = mouseY < top ? (mouseY - top) / 10 : (mouseY - bottom) / 10;
+                    scrollDelta = (mouseY < top ? mouseY - top : mouseY - bottom) / 10D;
+                    if (mouseY > bottom && items.size() % cols == 0) {
+                        displayedItems = Lists.newArrayList();
+                        displayedItems.addAll(items);
+                        displayedItems.add(ItemStack.EMPTY);
+                        updateEntries(displayedItems);
+                        return true;
+                    }
                 }
                 if (items != displayedItems) {
-                    initEntries(items);
                     displayedItems = items;
-                    return true;
+                    updateEntries(displayedItems);
                 }
             }
+            return true;
         }
         return false;
     }
@@ -119,9 +144,8 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         scrollDelta = 0;
         if (modifiable && button == 0 && isMouseOver(mouseX, mouseY) && cursorItemManager.hasCursorStack()) {
-            ItemWidget hovered = getHoveredItemWidget((int) mouseX, (int) mouseY);
-            if (hovered != null) {
-                int hoveredIndex = hovered.row * cols + hovered.col;
+            if (previousHoveredItemWidget != null) {
+                int hoveredIndex = previousHoveredItemWidget.row * cols + previousHoveredItemWidget.col;
                 displayedItems = Lists.newArrayList();
                 displayedItems.addAll(items.subList(0, hoveredIndex));
                 displayedItems.add(cursorItemManager.getCursorStack());
@@ -130,9 +154,8 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
                 displayedItems = Lists.newArrayList();
                 displayedItems.addAll(items);
                 displayedItems.add(cursorItemManager.getCursorStack());
-                BetterCreativity.LOGGER.info(displayedItems);
             }
-            initEntries(displayedItems);
+            updateEntries(displayedItems);
             items = displayedItems;
             return true;
         }
@@ -145,18 +168,15 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         setScrollAmount(getScrollAmount() + scrollDelta);
     }
 
-    public ItemWidget getHoveredItemWidget(int mouseX, int mouseY) {
-        AtomicReference<ItemWidget> hoveredItemWidget = new AtomicReference<>();
-        hoveredElement(mouseX, mouseY).ifPresent(element1 -> {
-            if (element1 instanceof ItemListWidget.ItemRowEntry) {
-                ((ItemListWidget.ItemRowEntry) element1).hoveredElement(mouseX, mouseY).ifPresent(element2 -> {
-                    if (element2 instanceof ItemWidget) {
-                        hoveredItemWidget.set((ItemWidget) element2);
-                    }
-                });
+    public ItemWidget getHoveredItemWidget(double mouseX, double mouseY) {
+        ItemRowEntry rowEntry = getEntryAtPosition(mouseX, mouseY);
+        if (rowEntry == null) return null;
+        for (ItemWidget widget : rowEntry.widgets) {
+            if (mouseX >= widget.x && mouseX < widget.x + ItemWidget.width) {
+                return widget;
             }
-        });
-        return hoveredItemWidget.get();
+        }
+        return null;
     }
 
     protected static class ItemRowEntry extends ElementListWidget.Entry<ItemRowEntry> {

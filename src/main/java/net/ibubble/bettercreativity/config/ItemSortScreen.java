@@ -14,17 +14,20 @@ import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public class ItemSortScreen extends Screen {
@@ -40,6 +43,10 @@ public class ItemSortScreen extends Screen {
     private Text selectedListTitle, availableListTitle;
 
     private final CursorItemManager cursorItemManager;
+
+    private ButtonWidget sortButton;
+    private int sortKey = 0;
+    private final String[] sortKeys = {"Group", "ID", "Registered"};
 
     protected ItemSortScreen(Screen parent, ItemGroup itemGroup, List<ItemStack> itemStacks, Supplier<List<ItemStack>> defaultValue, Consumer<List<ItemStack>> onOK) {
         super(new TranslatableText("config.bettercreativity.creativeTabs.sort.title"));
@@ -98,9 +105,16 @@ public class ItemSortScreen extends Screen {
         availableListTitle = new TranslatableText("config.bettercreativity.creativeTabs.sort.availableListTitle");
         availableItemList = new ItemListWidget(client, rightListWidth, height, 64, height - 32, itemHeight, false);
         availableItemList.setLeftPos(width / 4 * 3 - rightListWidth / 2);
-        availableItemList.setItems(allItemStacks, cols);
-
+        availableItemList.setItems(getSortedItemStack(), cols);
         addSelectableChild(availableItemList);
+
+        sortButton = new ButtonWidget(availableItemList.getRight() - 100, 32, 100, 20, Text.of("Sort: " + sortKeys[sortKey]), button -> {
+            sortKey += 1;
+            if (sortKey == sortKeys.length) sortKey = 0;
+            sortButton.setMessage(Text.of("Sort: " + sortKeys[sortKey]));
+            availableItemList.setItems(getSortedItemStack(), cols);
+        });
+        addDrawableChild(sortButton);
 
         int buttonWidth = Math.min(200, (width - 50 - 12) / 3);
         ButtonWidget cancelButton = new ButtonWidget(width / 2 - buttonWidth - 3, height - 26, buttonWidth, 20, new TranslatableText("gui.cancel"), button -> close(true));
@@ -108,6 +122,17 @@ public class ItemSortScreen extends Screen {
 
         addDrawableChild(cancelButton);
         addDrawableChild(okButton);
+    }
+
+    private List<ItemStack> getSortedItemStack() {
+        return switch (sortKeys[sortKey]) {
+            case "ID" -> allItemStacks.stream().sorted(Comparator.comparing(itemStack -> Registry.ITEM.getId(itemStack.getItem()).toString())).collect(Collectors.toList());
+            case "Group" -> allItemStacks.stream().sorted(Comparator.comparingInt(itemStack -> {
+                ItemGroup group = itemStack.getItem().getGroup();
+                return group == null ? 999 : group.getIndex();
+            })).collect(Collectors.toList());
+            default -> allItemStacks;
+        };
     }
 
     protected void close(boolean cancelled) {
@@ -150,13 +175,17 @@ public class ItemSortScreen extends Screen {
         for (Element element : children()) {
             handled = handled || element.mouseClicked(mouseX, mouseY, button);
         }
-        if (button == 0 && hovered != null) {
-            cursorItemManager.setCursorStack(hovered.getItemStack().copy());
-            cursorItemManager.deltaX = (int) (mouseX - hovered.x);
-            cursorItemManager.deltaY = (int) (mouseY - hovered.y);
-            setDragging(true);
-            setFocused(hovered);
-            return true;
+        if (hovered != null) {
+            if (button == 0) {
+                cursorItemManager.setCursorStack(hovered.getItemStack().copy());
+                cursorItemManager.deltaX = (int) (mouseX - hovered.x);
+                cursorItemManager.deltaY = (int) (mouseY - hovered.y);
+                setDragging(true);
+                return true;
+            }
+            if (button == 1) {
+                selectedList.addItem(hovered.getItemStack().copy());
+            }
         }
         return handled;
     }
@@ -184,7 +213,7 @@ public class ItemSortScreen extends Screen {
         return handled;
     }
 
-    private ItemWidget getHoveredItemWidget(int mouseX, int mouseY) {
+    private ItemWidget getHoveredItemWidget(double mouseX, double mouseY) {
         AtomicReference<ItemWidget> hoveredItemWidget = new AtomicReference<>();
         hoveredElement(mouseX, mouseY).ifPresent(element1 -> {
             if (element1 instanceof ItemListWidget) {
