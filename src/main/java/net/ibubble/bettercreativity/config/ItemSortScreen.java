@@ -1,7 +1,9 @@
 package net.ibubble.bettercreativity.config;
 
+import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.ibubble.bettercreativity.BetterCreativity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
@@ -35,14 +37,12 @@ public class ItemSortScreen extends Screen {
 
     private final Screen parent;
     private final ItemGroup itemGroup;
-    private final List<ItemStack> itemStacks;
     private final Supplier<List<ItemStack>> defaultValue;
     private final Consumer<List<ItemStack>> onOK;
 
-    private ItemListWidget selectedList, availableItemList;
-    private Text selectedListTitle, availableListTitle;
-
     private final CursorItemManager cursorItemManager;
+    private final ItemListWidget selectedList, availableItemList;
+    private final Text selectedListTitle, availableListTitle;
 
     private ButtonWidget sortButton;
     private int sortKey = 0;
@@ -52,67 +52,84 @@ public class ItemSortScreen extends Screen {
         super(new TranslatableText("config.bettercreativity.creativeTabs.sort.title"));
         this.parent = parent;
         this.itemGroup = itemGroup;
-        this.itemStacks = itemStacks;
         this.defaultValue = defaultValue;
         this.onOK = onOK;
         cursorItemManager = CursorItemManager.getInstance();
+
+        int itemHeight = ItemWidget.height;
+        selectedListTitle = itemGroup.getTranslationKey();
+        selectedList = new ItemListWidget(client, 0, height, 64, height - 32, itemHeight, true);
+        selectedList.setItems(Lists.newArrayList(itemStacks), 9);
+        availableListTitle = new TranslatableText("config.bettercreativity.creativeTabs.sort.availableListTitle");
+        availableItemList = new ItemListWidget(client, 0, height, 64, height - 32, itemHeight, false);
     }
 
     @Override
     protected void init() {
         super.init();
+        clearChildren();
 
         int scrollBarWidth = 8;
         int itemWidth = ItemWidget.width;
-        int itemHeight = ItemWidget.height;
 
         int leftListWidth = itemWidth * 9 + scrollBarWidth;
-        int leftListLeft = width / 4 - leftListWidth / 2;
-        selectedListTitle = itemGroup.getTranslationKey();
-        selectedList = new ItemListWidget(client, leftListWidth, height, 64, height - 32, itemHeight, true);
-        selectedList.setLeftPos(leftListLeft);
-        selectedList.setItems(itemStacks, 9);
-        ButtonWidget defaultButton = new ButtonWidget(leftListLeft + leftListWidth - 64, 32, 20, 20, Text.of("D"), button -> {
-            selectedList.setItems(defaultValue.get(), 9);
-        }, (button, matrices, mouseX, mouseY) -> {
-            if (button.isMouseOver(mouseX, mouseY)) {
-                renderTooltip(matrices, Text.of("Default"), mouseX, mouseY);
-            }
-        });
-        ButtonWidget recommendedButton = new ButtonWidget(leftListLeft + leftListWidth - 42, 32, 20, 20, Text.of("R"), button -> {
-            selectedList.setItems(List.of(), 9);
-        }, (button, matrices, mouseX, mouseY) -> {
-            if (button.isMouseOver(mouseX, mouseY)) {
-                renderTooltip(matrices, Text.of("Recommended"), mouseX, mouseY);
-            }
-        });
-        ButtonWidget clearButton = new ButtonWidget(leftListLeft + leftListWidth - 20, 32, 20, 20, Text.of("C"), button -> {
-            selectedList.setItems(List.of(), 9);
+        selectedList.updateSize(leftListWidth, height, 64, height - 32);
+        selectedList.setLeftPos(width / 4 - leftListWidth / 2);
+        addSelectableChild(selectedList);
+
+        ButtonWidget defaultButton, exampleButton;
+        if (Examples.contains(itemGroup)) {
+            defaultButton = new ButtonWidget(selectedList.getRight() - 64, 32, 20, 20, Text.of("D"), button -> {
+                selectedList.setItems(Lists.newArrayList(defaultValue.get()), 9);
+            }, (button, matrices, mouseX, mouseY) -> {
+                if (button.isMouseOver(mouseX, mouseY)) {
+                    renderTooltip(matrices, Text.of("Default"), mouseX, mouseY);
+                }
+            });
+            exampleButton = new ButtonWidget(selectedList.getRight() - 42, 32, 20, 20, Text.of("E"), button -> {
+                selectedList.setItems(Lists.newArrayList(Examples.get(itemGroup)), 9);
+            }, (button, matrices, mouseX, mouseY) -> {
+                if (button.isMouseOver(mouseX, mouseY)) {
+                    renderTooltip(matrices, Text.of("Example"), mouseX, mouseY);
+                }
+            });
+
+            addDrawableChild(defaultButton);
+            addDrawableChild(exampleButton);
+        } else {
+            defaultButton = new ButtonWidget(selectedList.getRight() - 42, 32, 20, 20, Text.of("D"), button -> {
+                selectedList.setItems(Lists.newArrayList(defaultValue.get()), 9);
+            }, (button, matrices, mouseX, mouseY) -> {
+                if (button.isMouseOver(mouseX, mouseY)) {
+                    renderTooltip(matrices, Text.of("Default"), mouseX, mouseY);
+                }
+            });
+
+            addDrawableChild(defaultButton);
+        }
+        ButtonWidget clearButton = new ButtonWidget(selectedList.getRight() - 20, 32, 20, 20, Text.of("C"), button -> {
+            selectedList.setItems(Lists.newArrayList(), 9);
         }, (button, matrices, mouseX, mouseY) -> {
             if (button.isMouseOver(mouseX, mouseY)) {
                 renderTooltip(matrices, Text.of("Clear"), mouseX, mouseY);
             }
         });
 
-        addSelectableChild(selectedList);
-        addDrawableChild(defaultButton);
-        addDrawableChild(recommendedButton);
         addDrawableChild(clearButton);
 
 //        List<ItemStack> unselected = allItemStacks.stream().filter(itemStack1 -> itemStacks.stream().noneMatch(itemStack2 -> ItemStack.areEqual(itemStack1, itemStack2))).collect(Collectors.toList());
         int cols = (width / 2 - 10 - scrollBarWidth) / itemWidth;
         int rightListWidth = itemWidth * cols + scrollBarWidth;
-        availableListTitle = new TranslatableText("config.bettercreativity.creativeTabs.sort.availableListTitle");
-        availableItemList = new ItemListWidget(client, rightListWidth, height, 64, height - 32, itemHeight, false);
+        availableItemList.updateSize(rightListWidth, height, 64, height - 32);
         availableItemList.setLeftPos(width / 4 * 3 - rightListWidth / 2);
-        availableItemList.setItems(getSortedItemStack(), cols);
+        availableItemList.setItems(Lists.newArrayList(getSortedItemStack()), cols);
         addSelectableChild(availableItemList);
 
         sortButton = new ButtonWidget(availableItemList.getRight() - 100, 32, 100, 20, Text.of("Sort: " + sortKeys[sortKey]), button -> {
             sortKey += 1;
             if (sortKey == sortKeys.length) sortKey = 0;
             sortButton.setMessage(Text.of("Sort: " + sortKeys[sortKey]));
-            availableItemList.setItems(getSortedItemStack(), cols);
+            availableItemList.setItems(Lists.newArrayList(getSortedItemStack()), cols);
         });
         addDrawableChild(sortButton);
 
@@ -135,10 +152,30 @@ public class ItemSortScreen extends Screen {
         };
     }
 
+    private void dump() {
+        Iterator<ItemStack> itr = selectedList.getItems().iterator();
+        StringBuilder lines = new StringBuilder();
+        while (itr.hasNext()) {
+            ItemStack[] line = new ItemStack[9];
+            for (int i = 0; i < 9; i++) {
+                if (itr.hasNext()) line[i] = itr.next();
+            }
+            lines.append(
+                    Arrays.stream(line).map(itemStack -> {
+                        if (itemStack == null || itemStack.isEmpty()) return "null";
+                        return "\"%s\"".formatted(Registry.ITEM.getId(itemStack.getItem()).getPath());
+                    }).collect(Collectors.joining(", "))
+            ).append(",\n");
+        }
+        BetterCreativity.LOGGER.info(lines.toString());
+    }
+
     protected void close(boolean cancelled) {
         MinecraftClient.getInstance().setScreen(parent);
         CursorItemManager.discard();
         if (!cancelled) this.onOK.accept(selectedList.getItems());
+
+//        dump();
     }
 
     @Override
@@ -183,7 +220,7 @@ public class ItemSortScreen extends Screen {
                 setDragging(true);
                 return true;
             }
-            if (button == 1) {
+            if (button == 1 && availableItemList.isMouseOver(mouseX, mouseY)) {
                 selectedList.addItem(hovered.getItemStack().copy());
             }
         }
@@ -236,9 +273,6 @@ public class ItemSortScreen extends Screen {
             ItemGroup group = item.getGroup();
             if (item instanceof EnchantedBookItem) {
                 for (Enchantment enchantment : Registry.ENCHANTMENT) {
-//                    for (int i = enchantment.getMinLevel(); i <= enchantment.getMaxLevel(); i++) {
-//                        allItemStacks.add(EnchantedBookItem.forEnchantment(new EnchantmentLevelEntry(enchantment, i)));
-//                    }
                     allItemStacks.add(EnchantedBookItem.forEnchantment(new EnchantmentLevelEntry(enchantment, enchantment.getMaxLevel())));
                 }
             } else if (group == null) {

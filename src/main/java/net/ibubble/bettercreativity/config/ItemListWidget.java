@@ -19,7 +19,7 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
     private final ItemSortScreen.CursorItemManager cursorItemManager = ItemSortScreen.CursorItemManager.getInstance();
 
     private final boolean modifiable;
-    private List<ItemStack> items, displayedItems;
+    private ArrayList<ItemStack> items, displayedItems;
     private int cols;
     private double scrollDelta = 0;
     private ItemWidget previousHoveredItemWidget;
@@ -42,7 +42,7 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         return items;
     }
 
-    public void setItems(List<ItemStack> items, int cols) {
+    public void setItems(ArrayList<ItemStack> items, int cols) {
         this.cols = cols;
         this.items = items;
         displayedItems = items;
@@ -79,13 +79,13 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
             ItemWidget hovered = getHoveredItemWidget((int) mouseX, (int) mouseY);
             if (hovered != null) {
                 int hoveredIndex = hovered.row * cols + hovered.col;
-                displayedItems = Lists.newArrayList();
+                displayedItems = new ArrayList<>(items.size() + 1);
                 displayedItems.addAll(items.subList(0, hoveredIndex));
                 displayedItems.add(ItemStack.EMPTY);
                 displayedItems.addAll(items.subList(hoveredIndex + 1, items.size()));
                 updateEntries(displayedItems);
 
-                items = new ArrayList<>(displayedItems);
+                items = Lists.newArrayList(displayedItems);
                 items.remove(hoveredIndex);
 
                 return true;
@@ -108,12 +108,12 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
 
                 if (hovered != null) {
                     int hoveredIndex = hovered.row * cols + hovered.col;
-                    displayedItems = Lists.newArrayList();
+                    displayedItems = new ArrayList<>(items.size() + 1);
                     displayedItems.addAll(items.subList(0, hoveredIndex));
                     displayedItems.add(ItemStack.EMPTY);
                     displayedItems.addAll(items.subList(hoveredIndex, items.size()));
                 } else {
-                    displayedItems = Lists.newArrayList();
+                    displayedItems = new ArrayList<>(items.size() + 1);
                     displayedItems.addAll(items);
                     displayedItems.add(ItemStack.EMPTY);
                 }
@@ -123,7 +123,7 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
                 if (mouseX >= left && mouseX <= right) {
                     scrollDelta = (mouseY < top ? mouseY - top : mouseY - bottom) / 10D;
                     if (mouseY > bottom && items.size() % cols == 0) {
-                        displayedItems = Lists.newArrayList();
+                        displayedItems = new ArrayList<>(items.size() + 1);
                         displayedItems.addAll(items);
                         displayedItems.add(ItemStack.EMPTY);
                         updateEntries(displayedItems);
@@ -146,12 +146,12 @@ public class ItemListWidget extends ElementListWidget<ItemListWidget.ItemRowEntr
         if (modifiable && button == 0 && isMouseOver(mouseX, mouseY) && cursorItemManager.hasCursorStack()) {
             if (previousHoveredItemWidget != null) {
                 int hoveredIndex = previousHoveredItemWidget.row * cols + previousHoveredItemWidget.col;
-                displayedItems = Lists.newArrayList();
+                displayedItems = new ArrayList<>(items.size() + 1);
                 displayedItems.addAll(items.subList(0, hoveredIndex));
                 displayedItems.add(cursorItemManager.getCursorStack());
                 displayedItems.addAll(items.subList(hoveredIndex, items.size()));
             } else {
-                displayedItems = Lists.newArrayList();
+                displayedItems = new ArrayList<>(items.size() + 1);
                 displayedItems.addAll(items);
                 displayedItems.add(cursorItemManager.getCursorStack());
             }
