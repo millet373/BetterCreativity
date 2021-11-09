@@ -1,6 +1,7 @@
 package net.ibubble.bettercreativity.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -56,7 +57,8 @@ public class ConfigManager {
             file = new File(FabricLoader.getInstance().getConfigDir().toFile(), BetterCreativity.MOD_ID + ".json");
         }
 
-        String jsonString = new Gson().toJson(config);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String jsonString = gson.toJson(config);
 
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(jsonString);

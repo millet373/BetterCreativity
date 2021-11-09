@@ -4,10 +4,13 @@
   "package": "net.ibubble.bettercreativity.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "MixinPlayerEntity"
   ],
   "client": [
-    "MinecraftClientAccessor",
-    "gui.CreativeInventoryScreenMixin"
+    "client.AccessorMinecraftClient",
+    "client.MixinClientPlayNetworkHandler",
+    "client.MixinCreativeInventoryScreen",
+    "client.MixinLightmapTextureManager"
   ],
   "injectors": {
     "defaultRequire": 1

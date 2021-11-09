@@ -1,8 +1,11 @@
-package net.ibubble.bettercreativity.mixin.gui;
+package net.ibubble.bettercreativity.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.ibubble.bettercreativity.Ability;
 import net.ibubble.bettercreativity.BetterCreativityClient;
+import net.ibubble.bettercreativity.api.AbilityHolder;
+import net.ibubble.bettercreativity.client.ToggleButton;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
 import net.minecraft.client.gui.screen.Screen;
@@ -29,16 +32,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 @Mixin(CreativeInventoryScreen.class)
-public abstract class CreativeInventoryScreenMixin extends AbstractInventoryScreen<CreativeInventoryScreen.CreativeScreenHandler> {
+public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScreen<CreativeInventoryScreen.CreativeScreenHandler> {
     @Shadow static int selectedTab;
     @Shadow boolean ignoreTypedCharacter;
     @Shadow TextFieldWidget searchBox;
 
-    public CreativeInventoryScreenMixin(CreativeInventoryScreen.CreativeScreenHandler screenHandler, PlayerInventory playerInventory, Text text) {
+    public MixinCreativeInventoryScreen(CreativeInventoryScreen.CreativeScreenHandler screenHandler, PlayerInventory playerInventory, Text text) {
         super(screenHandler, playerInventory, text);
     }
 
@@ -50,6 +55,38 @@ public abstract class CreativeInventoryScreenMixin extends AbstractInventoryScre
 
     @Shadow
     abstract void search();
+
+    @Inject(method = "init", at = @At("TAIL"))
+    private void onInit(CallbackInfo ci) {
+        assert client != null && client.player != null;
+        AbilityHolder player = (AbilityHolder) client.player;
+        int size = 16;
+        int tabHeight = 32;
+        List<Ability> availableAbilities = Ability.VALUES.stream().filter(ability -> !BetterCreativityClient.isClientMode() || ability.client).collect(Collectors.toList());
+        int l = width / 2 - size * availableAbilities.size() / 2;
+        for (Ability ability : availableAbilities) {
+            ToggleButton toggleButton = new ToggleButton(l, y - tabHeight - size - 2, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
+                if (client.player.isCreative() && ability.client) {
+                    if (value) {
+                        player.bc$addAbility(ability);
+                    } else {
+                        player.bc$removeAbility(ability);
+                    }
+                    return true;
+                }
+                if (value) {
+                    BetterCreativityClient.interactionManager.requestAbility(ability, () -> button.setValue(true));
+                } else {
+                    BetterCreativityClient.interactionManager.deleteAbility(ability, () -> button.setValue(false));
+                }
+                return false;
+            }, (button, matrices, mouseX, mouseY) -> {
+                renderTooltip(matrices, ability.tooltip.get(), mouseX, mouseY);
+            });
+            addDrawableChild(toggleButton);
+            l += size;
+        }
+    }
 
     @Redirect(method = "setSelectedTab", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemGroup;appendStacks(Lnet/minecraft/util/collection/DefaultedList;)V"))
     private void overrideAppendStacks(ItemGroup group, DefaultedList<ItemStack> itemStackList) {

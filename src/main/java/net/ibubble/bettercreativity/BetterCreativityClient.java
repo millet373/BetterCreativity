@@ -6,7 +6,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.ibubble.bettercreativity.mixin.MinecraftClientAccessor;
+import net.ibubble.bettercreativity.mixin.client.AccessorMinecraftClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.search.SearchManager;
@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class BetterCreativityClient implements ClientModInitializer {
     private static boolean clientMode = false;
     public static final SearchManager.Key<ItemStack> SEARCH_KEY_ITEM_ID_AND_TOOLTIP = new SearchManager.Key<>();
+    public static final BetterCreativityInteractionManager interactionManager = new BetterCreativityInteractionManager();
 
     public static boolean isClientMode() {
         return clientMode;
@@ -38,7 +39,7 @@ public class BetterCreativityClient implements ClientModInitializer {
 
     @SuppressWarnings("ConstantConditions")
     private void initializeSearchableContainer() {
-        SearchManager searchManager = ((MinecraftClientAccessor) MinecraftClient.getInstance()).getSearchManager();
+        SearchManager searchManager = ((AccessorMinecraftClient) MinecraftClient.getInstance()).getSearchManager();
         SearchableContainer<ItemStack> searchableContainer = new TextSearchableContainer<>(itemStack -> {
             return itemStack.getTooltip(null, TooltipContext.Default.NORMAL).stream().map(text -> {
                 String id = Registry.ITEM.getId(itemStack.getItem()).getPath();
@@ -63,9 +64,9 @@ public class BetterCreativityClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             clientMode = false;
         });
-        ClientPlayNetworking.registerGlobalReceiver(BetterCreativity.PONG_PACKET, ((client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(BetterCreativity.PONG_PACKET, (client, handler, buf, responseSender) -> {
             BetterCreativity.LOGGER.info("Running in normal mode...");
             clientMode = false;
-        }));
+        });
     }
 }

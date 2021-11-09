@@ -1,4 +1,4 @@
-package net.ibubble.bettercreativity.mixin;
+package net.ibubble.bettercreativity.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Environment(EnvType.CLIENT)
 @Mixin(MinecraftClient.class)
-public interface MinecraftClientAccessor {
+public interface AccessorMinecraftClient {
     @Accessor
     SearchManager getSearchManager();
 }
