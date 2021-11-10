@@ -50,17 +50,20 @@ public class BetterCreativityInteractionManager {
             KeyBindingHelper.registerKeyBinding(keyBinding);
         }
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.interactionManager == null) return;
+            if (client.player == null || client.interactionManager == null) return;
             if (client.interactionManager.getCurrentGameMode().isSurvivalLike()) return;
+            AbilityHolder player = (AbilityHolder) client.player;
             for (Ability ability : Ability.values()) {
                 KeyBinding keyBinding = config.getAbilityKeyBinding(ability);
                 if (keyBinding.isUnbound()) continue;
                 while (keyBinding.wasPressed()) {
                     if (BetterCreativityClient.isClientMode() && !ability.client) break;
-                    if (ability.isEnabled(client)) {
-                        deleteAbility(ability);
+                    if (player.bc$hasAbility(ability)) {
+                        if (ability.client) player.bc$removeAbility(ability);
+                        else deleteAbility(ability);
                     } else {
-                        requestAbility(ability);
+                        if (ability.client) player.bc$addAbility(ability);
+                        else requestAbility(ability);
                     }
                 }
             }
@@ -72,6 +75,7 @@ public class BetterCreativityInteractionManager {
     }
 
     public void requestAbility(Ability ability, Runnable onSuccess) {
+        assert !ability.client;
         int seq = this.seq.getAndUpdate(n -> n + 1);
         if (onSuccess != null) onSuccessHandlers.put(seq, onSuccess);
         sendRequest(seq, ability, false);
@@ -82,6 +86,7 @@ public class BetterCreativityInteractionManager {
     }
 
     public void deleteAbility(Ability ability, Runnable onSuccess) {
+        assert !ability.client;
         int seq = this.seq.getAndUpdate(n -> n + 1);
         if (onSuccess != null) onSuccessHandlers.put(seq, onSuccess);
         sendRequest(seq, ability, true);

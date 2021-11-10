@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class AbilityToggleButtonsProvider {
     public static List<ToggleButton> create(MinecraftClient client, int screenWidth, int inventoryY, int inventoryHeight, RenderTooltip renderTooltip) {
-        assert client.player != null;
+        assert client.player != null && client.interactionManager != null;
         List<ToggleButton> buttons = Lists.newArrayList();
         ConfigObject config = ConfigManager.getInstance().getConfig();
         AbilityHolder player = (AbilityHolder) client.player;
@@ -28,7 +28,7 @@ public class AbilityToggleButtonsProvider {
         int buttonY = Objects.equals(config.displayPosition, "upper") ? inventoryY - size - 2 : inventoryY + inventoryHeight + 2;
         for (Ability ability : availableAbilities) {
             ToggleButton toggleButton = new ToggleButton(buttonX, buttonY, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
-                if (client.player.isCreative() && ability.client) {
+                if (!client.interactionManager.getCurrentGameMode().isSurvivalLike() && ability.client) {
                     if (value) {
                         player.bc$addAbility(ability);
                     } else {
