@@ -2,9 +2,8 @@ package net.ibubble.bettercreativity.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ibubble.bettercreativity.Ability;
 import net.ibubble.bettercreativity.BetterCreativityClient;
-import net.ibubble.bettercreativity.api.AbilityHolder;
+import net.ibubble.bettercreativity.client.AbilityToggleButtonsProvider;
 import net.ibubble.bettercreativity.client.ToggleButton;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
@@ -34,8 +33,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Environment(EnvType.CLIENT)
 @Mixin(CreativeInventoryScreen.class)
@@ -59,35 +56,10 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
-        assert client != null && client.player != null;
-        ConfigObject config = ConfigManager.getInstance().getConfig();
-        AbilityHolder player = (AbilityHolder) client.player;
-        int size = 16;
-        int tabHeight = 32;
-        List<Ability> availableAbilities = Stream.of(Ability.values()).filter(ability -> !BetterCreativityClient.isClientMode() || ability.client).collect(Collectors.toList());
-        int buttonX = width / 2 - size * availableAbilities.size() / 2;
-        int buttonY = Objects.equals(config.displayPosition, "upper") ? y - tabHeight - size - 2 : y + backgroundHeight + tabHeight + 2;
-        for (Ability ability : availableAbilities) {
-            ToggleButton toggleButton = new ToggleButton(buttonX, buttonY, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
-                if (client.player.isCreative() && ability.client) {
-                    if (value) {
-                        player.bc$addAbility(ability);
-                    } else {
-                        player.bc$removeAbility(ability);
-                    }
-                    return true;
-                }
-                if (value) {
-                    BetterCreativityClient.interactionManager.requestAbility(ability, () -> button.setValue(true));
-                } else {
-                    BetterCreativityClient.interactionManager.deleteAbility(ability, () -> button.setValue(false));
-                }
-                return false;
-            }, (button, matrices, mouseX, mouseY) -> {
-                renderTooltip(matrices, ability.tooltip.get(), mouseX, mouseY);
-            });
-            addDrawableChild(toggleButton);
-            buttonX += size;
+        assert client != null;
+        int tabHeight = 28;
+        for (ToggleButton button : AbilityToggleButtonsProvider.create(client, width, y - tabHeight, backgroundHeight + tabHeight * 2, this::renderTooltip)) {
+            addDrawableChild(button);
         }
     }
 

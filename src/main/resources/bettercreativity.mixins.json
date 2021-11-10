@@ -9,6 +9,7 @@
   "client": [
     "client.AccessorMinecraftClient",
     "client.MixinClientPlayNetworkHandler",
+    "client.MixinInventoryScreen",
     "client.MixinCreativeInventoryScreen",
     "client.MixinLightmapTextureManager"
   ],
