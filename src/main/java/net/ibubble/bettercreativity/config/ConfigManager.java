@@ -1,13 +1,17 @@
 package net.ibubble.bettercreativity.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.ibubble.bettercreativity.BetterCreativity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.*;
+import java.lang.reflect.Type;
+import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class ConfigManager {
@@ -20,10 +24,15 @@ public class ConfigManager {
         return instance;
     }
 
+    private final Gson gson;
     private File file;
     private ConfigObject config;
 
     private ConfigManager() {
+        gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(KeyBinding[].class, new KeyBindingTypeAdapter())
+                .create();
         loadConfig();
     }
 
@@ -45,7 +54,7 @@ public class ConfigManager {
 
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-            config = new Gson().fromJson(bufferedReader, ConfigObject.class);
+            config = gson.fromJson(bufferedReader, ConfigObject.class);
         } catch (FileNotFoundException e) {
             System.err.println("Failed to load Better Creativity config");
             e.printStackTrace();
@@ -57,7 +66,6 @@ public class ConfigManager {
             file = new File(FabricLoader.getInstance().getConfigDir().toFile(), BetterCreativity.MOD_ID + ".json");
         }
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonString = gson.toJson(config);
 
         try (FileWriter writer = new FileWriter(file)) {
@@ -65,6 +73,36 @@ public class ConfigManager {
         } catch (IOException e) {
             System.err.println("Failed to save Better Creativity config");
             e.printStackTrace();
+        }
+    }
+
+    public static class KeyBindingTypeAdapter implements JsonSerializer<KeyBinding[]>, JsonDeserializer<KeyBinding[]> {
+        @Override
+        public JsonElement serialize(KeyBinding[] src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject object = new JsonObject();
+            for (KeyBinding binding : src) {
+                object.add(binding.getTranslationKey(), new JsonPrimitive(binding.getBoundKeyTranslationKey()));
+            }
+            return object;
+        }
+
+        @Override
+        public KeyBinding[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject object = json.getAsJsonObject();
+            KeyBinding[] keyBindings = new KeyBinding[object.size()];
+            int i = 0;
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                InputUtil.Key key;
+                try {
+                    key = InputUtil.fromTranslationKey(entry.getValue().getAsString());
+                } catch (IllegalStateException e) {
+                    key = InputUtil.UNKNOWN_KEY;
+                }
+                keyBindings[i] = new KeyBinding(entry.getKey(), GLFW.GLFW_KEY_UNKNOWN, "category.bettercreativity");
+                keyBindings[i].setBoundKey(key);
+                i++;
+            }
+            return keyBindings;
         }
     }
 }

@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Environment(EnvType.CLIENT)
 @Mixin(CreativeInventoryScreen.class)
@@ -59,13 +60,15 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         assert client != null && client.player != null;
+        ConfigObject config = ConfigManager.getInstance().getConfig();
         AbilityHolder player = (AbilityHolder) client.player;
         int size = 16;
         int tabHeight = 32;
-        List<Ability> availableAbilities = Ability.VALUES.stream().filter(ability -> !BetterCreativityClient.isClientMode() || ability.client).collect(Collectors.toList());
-        int l = width / 2 - size * availableAbilities.size() / 2;
+        List<Ability> availableAbilities = Stream.of(Ability.values()).filter(ability -> !BetterCreativityClient.isClientMode() || ability.client).collect(Collectors.toList());
+        int buttonX = width / 2 - size * availableAbilities.size() / 2;
+        int buttonY = Objects.equals(config.displayPosition, "upper") ? y - tabHeight - size - 2 : y + backgroundHeight + tabHeight + 2;
         for (Ability ability : availableAbilities) {
-            ToggleButton toggleButton = new ToggleButton(l, y - tabHeight - size - 2, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
+            ToggleButton toggleButton = new ToggleButton(buttonX, buttonY, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
                 if (client.player.isCreative() && ability.client) {
                     if (value) {
                         player.bc$addAbility(ability);
@@ -84,7 +87,7 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
                 renderTooltip(matrices, ability.tooltip.get(), mouseX, mouseY);
             });
             addDrawableChild(toggleButton);
-            l += size;
+            buttonX += size;
         }
     }
 

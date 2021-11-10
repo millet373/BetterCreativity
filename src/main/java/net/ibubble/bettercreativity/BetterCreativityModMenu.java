@@ -2,17 +2,17 @@ package net.ibubble.bettercreativity;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import me.shedaniel.clothconfig2.api.*;
 import me.shedaniel.clothconfig2.gui.entries.SubCategoryListEntry;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
 import net.ibubble.bettercreativity.config.ItemSortListEntry;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.TranslatableText;
@@ -32,14 +32,16 @@ public class BetterCreativityModMenu implements ModMenuApi {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(new TranslatableText("config.bettercreativity.title"));
+                .setTitle(new TranslatableText("config.bettercreativity.title"))
+                .setSavingRunnable(configManager::saveConfig);
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         entryBuilder.setResetButtonKey(new TranslatableText("controls.reset"));
 
         ConfigCategory basics = builder.getOrCreateCategory(new TranslatableText("config.bettercreativity.basics"));
         basics.addEntry(createBehaviorSubCategory(entryBuilder, config));
-        basics.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.bettercreativity.searchItemById"), config.searchItemById)
+        basics.addEntry(entryBuilder
+                .startBooleanToggle(new TranslatableText("config.bettercreativity.searchItemById"), config.searchItemById)
                 .setDefaultValue(false)
                 .setTooltip(new TranslatableText("config.bettercreativity.searchItemById.tooltip"))
                 .setSaveConsumer(newValue -> config.searchItemById = newValue)
@@ -56,9 +58,19 @@ public class BetterCreativityModMenu implements ModMenuApi {
             }));
         }
 
+        ConfigCategory abilities = builder.getOrCreateCategory(new TranslatableText("config.bettercreativity.abilities"));
+        abilities.addEntry(entryBuilder
+                .startSelector(new TranslatableText("config.bettercreativity.abilities.displayPosition"), new String[]{"upper", "lower"}, config.displayPosition)
+                .setNameProvider(value -> new TranslatableText("text.bettercreativity.position." + value))
+                .setDefaultValue("upper")
+                .setTooltip(new TranslatableText("config.bettercreativity.abilities.displayPosition.tooltip"))
+                .setSaveConsumer(newValue -> config.displayPosition = newValue)
+                .build()
+        );
+        abilities.addEntry(createAbilityKeybindingsSubCategory(entryBuilder, config));
+
         builder.setGlobalized(true);
         builder.setGlobalizedExpanded(false);
-        builder.setSavingRunnable(configManager::saveConfig);
 
         return builder.build();
     }
@@ -104,5 +116,18 @@ public class BetterCreativityModMenu implements ModMenuApi {
                 .build()
         );
         return behavior.build();
+    }
+
+    private SubCategoryListEntry createAbilityKeybindingsSubCategory(ConfigEntryBuilder entryBuilder, ConfigObject config) {
+        SubCategoryBuilder keybindings = entryBuilder.startSubCategory(new TranslatableText("config.bettercreativity.keyBindings"));
+        for (Ability ability : Ability.values()) {
+            keybindings.add(entryBuilder
+                .startKeyCodeField(new TranslatableText("ability.bettercreativity." + ability.name()), KeyBindingHelper.getBoundKeyOf(config.getAbilityKeyBinding(ability)))
+                .setDefaultValue(InputUtil.UNKNOWN_KEY)
+                .setSaveConsumer(newValue -> config.setAbilityKeyBinding(ability, newValue))
+                .build()
+            );
+        }
+        return keybindings.build();
     }
 }

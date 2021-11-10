@@ -1,5 +1,8 @@
 {
+  "category.bettercreativity": "Better Creativity",
   "text.bettercreativity.customize": "カスタム",
+  "text.bettercreativity.position.upper": "上側",
+  "text.bettercreativity.position.lower": "下側",
   "config.bettercreativity.title": "Better Creativityの設定",
   "config.bettercreativity.basics": "基本",
   "config.bettercreativity.behavior": "クリエイティブインベントリの動作",
@@ -22,5 +25,12 @@
   "config.bettercreativity.creativeTabs": "クリエイティブタブ",
   "config.bettercreativity.creativeTabs.sort.title": "クリエイティブタブのアイテムの並び替え",
   "config.bettercreativity.creativeTabs.sort.hint": "ドラッグアンドドロップで編集",
-  "config.bettercreativity.creativeTabs.sort.availableListTitle": "アイテムリスト"
+  "config.bettercreativity.creativeTabs.sort.availableListTitle": "アイテムリスト",
+  "config.bettercreativity.abilities": "能力",
+  "config.bettercreativity.abilities.displayPosition": "表示位置",
+  "config.bettercreativity.abilities.displayPosition.tooltip": "インベントリ画面での能力切替ボタンの表示位置",
+  "config.bettercreativity.keyBindings": "キーバインド",
+  "ability.bettercreativity.NO_CLIP": "すり抜け",
+  "ability.bettercreativity.NIGHT_VISION": "暗視",
+  "ability.bettercreativity.SPEED_BOOST": "加速"
 }

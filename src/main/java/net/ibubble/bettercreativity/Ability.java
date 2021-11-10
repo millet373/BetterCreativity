@@ -13,8 +13,6 @@ public enum Ability {
     NIGHT_VISION(effectTex("night_vision"), true, () -> Text.of("NightVision")),
     SPEED_BOOST(effectTex("speed"), false, () -> Text.of("SpeedBoost"));
 
-    public static final List<Ability> VALUES = List.of(values());
-
     public final Identifier texture;
     public final boolean client;
     public final Supplier<Text> tooltip;
@@ -30,12 +28,16 @@ public enum Ability {
     }
 
     public static Ability ordinalOf(int n) {
-        for (Ability ability : VALUES) {
+        for (Ability ability : values()) {
             if (ability.ordinal() == n) {
                 return ability;
             }
         }
         return null;
+    }
+
+    public String getTranslationKey() {
+        return "ability.bettercreativity." + name();
     }
 
     public boolean isEnabled(MinecraftClient client) {

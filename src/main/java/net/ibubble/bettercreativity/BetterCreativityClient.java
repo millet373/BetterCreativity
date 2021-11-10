@@ -35,6 +35,7 @@ public class BetterCreativityClient implements ClientModInitializer {
     public void onInitializeClient() {
         initializeSearchableContainer();
         setupPingPong();
+        interactionManager.init();
     }
 
     @SuppressWarnings("ConstantConditions")
