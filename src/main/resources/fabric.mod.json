@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "bettercreativity",
-  "version": "0.1.0",
+  "version": "1.0.0",
 
   "name": "Better Creativity",
-  "description": "Utilities for creative mode",
+  "description": "Improve creative mode",
   "authors": [
     "millet373"
   ],
@@ -32,11 +32,10 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.11.3",
-    "fabric": "*",
-    "minecraft": "1.17.x",
-    "java": ">=16"
+    "fabricloader": "*",
+    "fabric": "*"
   },
-  "suggests": {
+  "recommends": {
+    "cloth-config2": "*"
   }
 }
