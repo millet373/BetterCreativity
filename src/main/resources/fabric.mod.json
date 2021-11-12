@@ -6,10 +6,10 @@
   "name": "Better Creativity",
   "description": "Utilities for creative mode",
   "authors": [
-    "bubble0601"
+    "millet373"
   ],
   "contact": {
-    "sources": "https://github.com/bubble0601/BetterCreativity"
+    "sources": "https://github.com/millet373/BetterCreativity"
   },
 
   "license": "MIT",
@@ -18,13 +18,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.ibubble.bettercreativity.BetterCreativity"
+      "millet373.bettercreativity.BetterCreativity"
     ],
     "client": [
-      "net.ibubble.bettercreativity.BetterCreativityClient"
+      "millet373.bettercreativity.BetterCreativityClient"
     ],
     "modmenu": [
-      "net.ibubble.bettercreativity.BetterCreativityModMenu"
+      "millet373.bettercreativity.BetterCreativityModMenu"
     ]
   },
   "mixins": [

@@ -1,6 +1,6 @@
-package net.ibubble.bettercreativity.mixin.client;
+package millet373.bettercreativity.mixin.client;
 
-import net.ibubble.bettercreativity.Ability;
+import millet373.bettercreativity.Ability;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.network.ClientPlayerEntity;
