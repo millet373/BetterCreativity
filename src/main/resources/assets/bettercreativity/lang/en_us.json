@@ -31,6 +31,9 @@
   "config.bettercreativity.abilities.displayPosition.tooltip": "Display position of ability toggle buttons in inventory screen",
   "config.bettercreativity.keyBindings": "Keybindings",
   "ability.bettercreativity.NO_CLIP": "No clip",
+  "ability.bettercreativity.SPEED_FLIGHT": "Speed flight",
   "ability.bettercreativity.NIGHT_VISION": "Night vision",
-  "ability.bettercreativity.SPEED_BOOST": "Speed boost"
+  "ability.bettercreativity.INSTANT_BREAK": "No block breaking cooldown",
+  "ability.bettercreativity.LONG_REACH": "Long reach",
+  "ability.bettercreativity.POWERFUL_ATTACK": "Powerful attack"
 }

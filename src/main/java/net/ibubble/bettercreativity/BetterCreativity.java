@@ -28,7 +28,7 @@ public class BetterCreativity implements ModInitializer {
 			boolean delete = buf.readBoolean();
 			Ability ability = Ability.ordinalOf(buf.readByte());
 			server.execute(() -> {
-				if (ability == null) return;
+				if (ability == null || ability.worksOnClient) return;
 				if (player.interactionManager.getGameMode().isSurvivalLike()) return;
 				AbilityHolder mPlayer = (AbilityHolder) player;
 				if (delete) {

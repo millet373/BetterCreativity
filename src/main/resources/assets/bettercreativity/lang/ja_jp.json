@@ -31,6 +31,9 @@
   "config.bettercreativity.abilities.displayPosition.tooltip": "インベントリ画面での能力切替ボタンの表示位置",
   "config.bettercreativity.keyBindings": "キーバインド",
   "ability.bettercreativity.NO_CLIP": "すり抜け",
+  "ability.bettercreativity.SPEED_FLIGHT": "高速飛行",
   "ability.bettercreativity.NIGHT_VISION": "暗視",
-  "ability.bettercreativity.SPEED_BOOST": "加速"
+  "ability.bettercreativity.INSTANT_BREAK": "即時破壊",
+  "ability.bettercreativity.LONG_REACH": "リーチ延長",
+  "ability.bettercreativity.POWERFUL_ATTACK": "一撃必殺"
 }

@@ -13,18 +13,20 @@ import net.minecraft.util.Identifier;
 @Environment(EnvType.CLIENT)
 public class ToggleButton extends ClickableWidget {
     protected Identifier iconTexture;
+    protected int iconSize;
     protected boolean value;
     protected ClickHandler onClick;
     protected TooltipSupplier tooltipSupplier;
 
-    public ToggleButton(int x, int y, int width, int height, boolean value, Identifier iconTexture, ClickHandler onClick) {
-        this(x, y, width, height, value, iconTexture, onClick, null);
+    public ToggleButton(int x, int y, int width, int height, boolean value, Identifier iconTexture, int iconSize, ClickHandler onClick) {
+        this(x, y, width, height, value, iconTexture, iconSize, onClick, null);
     }
 
-    public ToggleButton(int x, int y, int width, int height, boolean value, Identifier iconTexture, ClickHandler onClick, TooltipSupplier tooltipSupplier) {
+    public ToggleButton(int x, int y, int width, int height, boolean value, Identifier iconTexture, int iconSize, ClickHandler onClick, TooltipSupplier tooltipSupplier) {
         super(x, y, width, height, LiteralText.EMPTY);
         this.value = value;
         this.iconTexture = iconTexture;
+        this.iconSize = iconSize;
         this.onClick = onClick;
         this.tooltipSupplier = tooltipSupplier;
     }
@@ -66,7 +68,7 @@ public class ToggleButton extends ClickableWidget {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
         setZOffset(1);
-        int tw = 18, th = 18;
+        int tw = iconSize, th = iconSize;
         int w = width - 2, h = height - 2;
         drawTexture(matrices, x + 1, y + 1, w, h, 0, 0, tw, th, tw, th);
         setZOffset(0);

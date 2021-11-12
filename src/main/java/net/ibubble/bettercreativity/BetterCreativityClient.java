@@ -40,7 +40,7 @@ public class BetterCreativityClient implements ClientModInitializer {
 
     @SuppressWarnings("ConstantConditions")
     private void initializeSearchableContainer() {
-        SearchManager searchManager = ((AccessorMinecraftClient) MinecraftClient.getInstance()).getSearchManager();
+        SearchManager searchManager = ((AccessorMinecraftClient) MinecraftClient.getInstance()).bc$getSearchManager();
         SearchableContainer<ItemStack> searchableContainer = new TextSearchableContainer<>(itemStack -> {
             return itemStack.getTooltip(null, TooltipContext.Default.NORMAL).stream().map(text -> {
                 String id = Registry.ITEM.getId(itemStack.getItem()).getPath();

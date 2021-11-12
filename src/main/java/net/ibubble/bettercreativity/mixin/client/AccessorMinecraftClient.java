@@ -10,6 +10,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Environment(EnvType.CLIENT)
 @Mixin(MinecraftClient.class)
 public interface AccessorMinecraftClient {
-    @Accessor
-    SearchManager getSearchManager();
+    @Accessor("searchManager")
+    SearchManager bc$getSearchManager();
 }

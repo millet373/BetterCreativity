@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ibubble.bettercreativity.api.AbilityHolder;
 import net.ibubble.bettercreativity.config.ConfigManager;
 import net.ibubble.bettercreativity.config.ConfigObject;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.network.PacketByteBuf;
 
@@ -18,10 +19,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Environment(EnvType.CLIENT)
 public class BetterCreativityInteractionManager {
+    private final MinecraftClient client;
     private final AtomicInteger seq = new AtomicInteger(0);
     private final Map<Integer, Runnable> onSuccessHandlers = new HashMap<>();
 
-    BetterCreativityInteractionManager() {}
+    BetterCreativityInteractionManager() {
+        client = MinecraftClient.getInstance();
+    }
 
     public void init() {
         ConfigObject config = ConfigManager.getInstance().getConfig();
@@ -57,13 +61,11 @@ public class BetterCreativityInteractionManager {
                 KeyBinding keyBinding = config.getAbilityKeyBinding(ability);
                 if (keyBinding.isUnbound()) continue;
                 while (keyBinding.wasPressed()) {
-                    if (BetterCreativityClient.isClientMode() && !ability.client) break;
+                    if (BetterCreativityClient.isClientMode() && !ability.worksOnClient) break;
                     if (player.bc$hasAbility(ability)) {
-                        if (ability.client) player.bc$removeAbility(ability);
-                        else deleteAbility(ability);
+                        deleteAbility(ability);
                     } else {
-                        if (ability.client) player.bc$addAbility(ability);
-                        else requestAbility(ability);
+                        requestAbility(ability);
                     }
                 }
             }
@@ -75,7 +77,15 @@ public class BetterCreativityInteractionManager {
     }
 
     public void requestAbility(Ability ability, Runnable onSuccess) {
-        assert !ability.client;
+        assert client.player != null && client.interactionManager != null;
+        if (ability.worksOnClient) {
+            if (client.interactionManager.getCurrentGameMode().isSurvivalLike()) return;
+            ((AbilityHolder) client.player).bc$addAbility(ability);
+            if (onSuccess != null) onSuccess.run();
+            return;
+        } else if (BetterCreativityClient.isClientMode()) {
+            return;
+        }
         int seq = this.seq.getAndUpdate(n -> n + 1);
         if (onSuccess != null) onSuccessHandlers.put(seq, onSuccess);
         sendRequest(seq, ability, false);
@@ -86,7 +96,13 @@ public class BetterCreativityInteractionManager {
     }
 
     public void deleteAbility(Ability ability, Runnable onSuccess) {
-        assert !ability.client;
+        assert client.player != null && client.interactionManager != null;
+        if (ability.worksOnClient) {
+            if (client.interactionManager.getCurrentGameMode().isSurvivalLike()) return;
+            ((AbilityHolder) client.player).bc$removeAbility(ability);
+            if (onSuccess != null) onSuccess.run();
+            return;
+        }
         int seq = this.seq.getAndUpdate(n -> n + 1);
         if (onSuccess != null) onSuccessHandlers.put(seq, onSuccess);
         sendRequest(seq, ability, true);

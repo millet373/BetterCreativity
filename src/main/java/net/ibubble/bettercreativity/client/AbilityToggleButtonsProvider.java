@@ -17,25 +17,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AbilityToggleButtonsProvider {
-    public static List<ToggleButton> create(MinecraftClient client, int screenWidth, int inventoryY, int inventoryHeight, RenderTooltip renderTooltip) {
+    public static List<ToggleButton> get(MinecraftClient client, int screenWidth, int inventoryY, int inventoryHeight, RenderTooltip renderTooltip) {
         assert client.player != null && client.interactionManager != null;
         List<ToggleButton> buttons = Lists.newArrayList();
         ConfigObject config = ConfigManager.getInstance().getConfig();
         AbilityHolder player = (AbilityHolder) client.player;
         int size = 16;
-        List<Ability> availableAbilities = Stream.of(Ability.values()).filter(ability -> !BetterCreativityClient.isClientMode() || ability.client).collect(Collectors.toList());
+        List<Ability> availableAbilities = Stream.of(Ability.values()).filter(ability -> !BetterCreativityClient.isClientMode() || ability.worksOnClient).collect(Collectors.toList());
         int buttonX = screenWidth / 2 - size * availableAbilities.size() / 2;
         int buttonY = Objects.equals(config.displayPosition, "upper") ? inventoryY - size - 2 : inventoryY + inventoryHeight + 2;
         for (Ability ability : availableAbilities) {
-            ToggleButton toggleButton = new ToggleButton(buttonX, buttonY, size, size, player.bc$hasAbility(ability), ability.texture, (button, value) -> {
-                if (!client.interactionManager.getCurrentGameMode().isSurvivalLike() && ability.client) {
-                    if (value) {
-                        player.bc$addAbility(ability);
-                    } else {
-                        player.bc$removeAbility(ability);
-                    }
-                    return true;
-                }
+            ToggleButton toggleButton = new ToggleButton(buttonX, buttonY, size, size, player.bc$hasAbility(ability), ability.texture, ability.textureSize, (button, value) -> {
                 if (value) {
                     BetterCreativityClient.interactionManager.requestAbility(ability, () -> button.setValue(true));
                 } else {

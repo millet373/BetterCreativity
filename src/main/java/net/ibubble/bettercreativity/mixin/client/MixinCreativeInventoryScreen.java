@@ -31,7 +31,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
@@ -58,12 +57,12 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
     private void onInit(CallbackInfo ci) {
         assert client != null;
         int tabHeight = 28;
-        for (ToggleButton button : AbilityToggleButtonsProvider.create(client, width, y - tabHeight, backgroundHeight + tabHeight * 2, this::renderTooltip)) {
+        for (ToggleButton button : AbilityToggleButtonsProvider.get(client, width, y - tabHeight, backgroundHeight + tabHeight * 2, this::renderTooltip)) {
             addDrawableChild(button);
         }
     }
 
-    @Redirect(method = "setSelectedTab", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemGroup;appendStacks(Lnet/minecraft/util/collection/DefaultedList;)V"))
+    @Redirect(method = "setSelectedTab", at = @At(value = "INVOKE", target = "net.minecraft.item.ItemGroup.appendStacks(Lnet/minecraft/util/collection/DefaultedList;)V"))
     private void overrideAppendStacks(ItemGroup group, DefaultedList<ItemStack> itemStackList) {
         ConfigObject config = ConfigManager.getInstance().getConfig();
         ItemStack[] stacks = config.getItemGroupStacks(group.getName());
@@ -78,7 +77,7 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
             method = "search",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;getSearchableContainer(Lnet/minecraft/client/search/SearchManager$Key;)Lnet/minecraft/client/search/SearchableContainer;"
+                    target = "net.minecraft.client.MinecraftClient.getSearchableContainer(Lnet/minecraft/client/search/SearchManager$Key;)Lnet/minecraft/client/search/SearchableContainer;"
             ),
             index = 0
     )

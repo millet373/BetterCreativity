@@ -15,10 +15,9 @@ public class MixinLightmapTextureManager {
     @Shadow @Final
     MinecraftClient client;
 
-    @Redirect(method = "update", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;gamma:D"))
+    @Redirect(method = "update", at = @At(value = "FIELD", target = "net.minecraft.client.option.GameOptions.gamma:D"))
     private double modifyGamma(GameOptions options) {
-        assert client.player != null && client.interactionManager != null;
-        if (Ability.NIGHT_VISION.isEnabled(client)) {
+        if (Ability.NIGHT_VISION.isEnabled(client.player)) {
             return 200D;
         }
         return options.gamma;

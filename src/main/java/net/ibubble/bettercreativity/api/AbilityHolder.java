@@ -9,9 +9,9 @@ public interface AbilityHolder {
 
     boolean bc$hasAbility(Ability ability);
 
-    boolean bc$addAbility(Ability ability);
+    void bc$addAbility(Ability ability);
 
-    boolean bc$removeAbility(Ability ability);
+    void bc$removeAbility(Ability ability);
 
     void bc$setAbilities(Set<Ability> abilities);
 }

@@ -22,7 +22,7 @@ public abstract class MixinInventoryScreen extends AbstractInventoryScreen<Playe
     private void onInit(CallbackInfo ci) {
         assert client != null && client.interactionManager != null;
         if (client.interactionManager.getCurrentGameMode().isSurvivalLike()) return;
-        for (ToggleButton button : AbilityToggleButtonsProvider.create(client, width, y, backgroundHeight, this::renderTooltip)) {
+        for (ToggleButton button : AbilityToggleButtonsProvider.get(client, width, y, backgroundHeight, this::renderTooltip)) {
             addDrawableChild(button);
         }
     }
