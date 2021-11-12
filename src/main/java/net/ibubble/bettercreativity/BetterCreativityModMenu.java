@@ -60,7 +60,7 @@ public class BetterCreativityModMenu implements ModMenuApi {
 
         ConfigCategory abilities = builder.getOrCreateCategory(new TranslatableText("config.bettercreativity.abilities"));
         abilities.addEntry(entryBuilder
-                .startSelector(new TranslatableText("config.bettercreativity.abilities.displayPosition"), new String[]{"upper", "lower"}, config.displayPosition)
+                .startSelector(new TranslatableText("config.bettercreativity.abilities.displayPosition"), new String[]{"upper", "lower", "hidden"}, config.displayPosition)
                 .setNameProvider(value -> new TranslatableText("text.bettercreativity.position." + value))
                 .setDefaultValue("upper")
                 .setTooltip(new TranslatableText("config.bettercreativity.abilities.displayPosition.tooltip"))

@@ -1,6 +1,8 @@
 package net.ibubble.bettercreativity.client;
 
 import com.google.common.collect.Lists;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.ibubble.bettercreativity.Ability;
 import net.ibubble.bettercreativity.BetterCreativityClient;
 import net.ibubble.bettercreativity.api.AbilityHolder;
@@ -16,11 +18,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Environment(EnvType.CLIENT)
 public class AbilityToggleButtonsProvider {
     public static List<ToggleButton> get(MinecraftClient client, int screenWidth, int inventoryY, int inventoryHeight, RenderTooltip renderTooltip) {
+        ConfigObject config = ConfigManager.getInstance().getConfig();
+        if (Objects.equals(config.displayPosition, "hidden")) return List.of();
+
         assert client.player != null && client.interactionManager != null;
         List<ToggleButton> buttons = Lists.newArrayList();
-        ConfigObject config = ConfigManager.getInstance().getConfig();
         AbilityHolder player = (AbilityHolder) client.player;
         int size = 16;
         List<Ability> availableAbilities = Stream.of(Ability.values()).filter(ability -> !BetterCreativityClient.isClientMode() || ability.worksOnClient).collect(Collectors.toList());
