@@ -33,7 +33,7 @@ public class ItemSortListEntry extends TooltipListEntry<List<ItemStack>> {
 
     @SuppressWarnings({"UnstableApiUsage", "deprecation"})
     public ItemSortListEntry(ItemGroup itemGroup, List<ItemStack> value, Consumer<List<ItemStack>> saveConsumer) {
-        super(itemGroup.getTranslationKey(), null, false);
+        super(itemGroup.getDisplayName(), null, false);
         DefaultedList<ItemStack> stacks = DefaultedList.of();
         itemGroup.appendStacks(stacks);
         defaultValue = () -> stacks;

@@ -57,7 +57,7 @@ public class ItemSortScreen extends Screen {
         cursorItemManager = CursorItemManager.getInstance();
 
         int itemHeight = ItemWidget.height;
-        selectedListTitle = itemGroup.getTranslationKey();
+        selectedListTitle = itemGroup.getDisplayName();
         selectedList = new ItemListWidget(client, 0, height, 64, height - 32, itemHeight, true);
         selectedList.setItems(Lists.newArrayList(itemStacks), 9);
         availableListTitle = new TranslatableText("config.bettercreativity.creativeTabs.sort.availableListTitle");

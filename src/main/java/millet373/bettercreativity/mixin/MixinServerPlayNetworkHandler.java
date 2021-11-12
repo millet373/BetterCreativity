@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Slice;
 @Mixin(ServerPlayNetworkHandler.class)
 public class MixinServerPlayNetworkHandler {
     @Shadow
-    public ServerPlayerEntity player;
+    ServerPlayerEntity player;
 
     @ModifyConstant(
             method = "onPlayerInteractBlock",

@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(ServerPlayerInteractionManager.class)
 public class MixinServerPlayerInteractionManager {
     @Shadow @Final
-    protected ServerPlayerEntity player;
+    ServerPlayerEntity player;
 
     @ModifyConstant(
             method = "processBlockBreakingAction",

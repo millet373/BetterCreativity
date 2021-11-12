@@ -36,9 +36,12 @@ import java.util.Objects;
 @Environment(EnvType.CLIENT)
 @Mixin(CreativeInventoryScreen.class)
 public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScreen<CreativeInventoryScreen.CreativeScreenHandler> {
-    @Shadow static int selectedTab;
-    @Shadow boolean ignoreTypedCharacter;
-    @Shadow TextFieldWidget searchBox;
+    @Shadow
+    static int selectedTab;
+    @Shadow
+    boolean ignoreTypedCharacter;
+    @Shadow
+    TextFieldWidget searchBox;
 
     public MixinCreativeInventoryScreen(CreativeInventoryScreen.CreativeScreenHandler screenHandler, PlayerInventory playerInventory, Text text) {
         super(screenHandler, playerInventory, text);

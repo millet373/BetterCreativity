@@ -18,7 +18,7 @@ public class MixinClientPlayNetworkHandler {
     private Set<Ability> abilities;
 
     @Shadow @Final
-    private MinecraftClient client;
+    MinecraftClient client;
 
     @Inject(method = "onPlayerRespawn", at = @At("HEAD"))
     private void storeAbility(CallbackInfo ci) {

@@ -17,7 +17,7 @@ public class MixinClientPlayerInteractionManager {
     @Shadow @Final
     MinecraftClient client;
     @Shadow
-    private int blockBreakingCooldown;
+    int blockBreakingCooldown;
 
     @Inject(method = "getReachDistance", at = @At("RETURN"), cancellable = true)
     private void modifyReachDistance(CallbackInfoReturnable<Float> cir) {
