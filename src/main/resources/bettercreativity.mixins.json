@@ -14,6 +14,8 @@
   ],
   "client": [
     "client.AccessorMinecraftClient",
+    "client.MixinBackgroundRenderer",
+    "client.MixinWorldRenderer",
     "client.MixinClientPlayerEntity",
     "client.MixinClientPlayerInteractionManager",
     "client.MixinClientPlayNetworkHandler",
